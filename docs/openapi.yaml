@@ -1,0 +1,740 @@
+openapi: 3.1.0
+info:
+  title: Tabasamu Sips — Backend API Contract
+  version: 1.0.0-handover
+  description: >
+    The API the backend must expose for the Tabasamu Sips frontend to run against
+    `NEXT_PUBLIC_ADAPTERS=http`. Derived from the typed port contract in
+    `src/ports/index.ts` — the ports are the final authority on exact shapes;
+    this document is the transport-level rendering of them.
+
+
+    CONVENTIONS THAT APPLY TO EVERY ENDPOINT
+
+    * Money is an object `{ amount: integer minor units, currency: "KES",
+      taxIncluded: boolean|null }`. Never a float. `taxIncluded` is null until D-16.
+
+    * Expected domain failures are returned as structured error bodies with a
+      stable `kind`, HTTP 4xx. Unexpected failures are HTTP 5xx with a generic,
+      user-safe message. The frontend switches on `kind`.
+
+    * Server totals are AUTHORITATIVE. The client computes for display only, using
+      the same domain rules; the server must recompute at order creation.
+
+    * Auth is a server-set httpOnly session cookie. NO token is returned in a body
+      (D-55). Endpoints marked `cookieAuth` require that cookie.
+
+    * Idempotency: order creation and payment initiation REQUIRE an
+      `Idempotency-Key` header; a repeat with the same key returns the original
+      result, never a duplicate side effect.
+
+    * Pagination: list endpoints accept `?limit` (default 20, max 100) and
+      `?cursor`; responses carry `{ items, nextCursor }`.
+
+    * Webhooks (M-PESA, card) are BACKEND-ONLY and are documented here as the
+      contract the backend owes. The frontend neither calls nor implements them.
+servers:
+  - url: https://api.tabasamusips.co.ke/v1
+    description: Production (placeholder host — confirm at deploy)
+  - url: https://sandbox-api.tabasamusips.co.ke/v1
+    description: Sandbox
+
+tags:
+  - name: Auth
+  - name: Products
+  - name: Collections
+  - name: Search
+  - name: Cart
+  - name: Coupons
+  - name: Delivery
+  - name: Checkout
+  - name: Orders
+  - name: Customers
+  - name: Addresses
+  - name: Subscriptions
+  - name: Payments-MPESA
+  - name: Payments-Card
+  - name: Refunds
+  - name: Webhooks
+  - name: Admin
+  - name: Reports
+  - name: Uploads
+  - name: Audit
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: ts_session
+    adminCookieAuth:
+      type: apiKey
+      in: cookie
+      name: ts_session
+      description: Same session cookie; endpoint additionally enforces an admin permission.
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, default: 20, minimum: 1, maximum: 100 }
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 8 }
+  schemas:
+    Money:
+      type: object
+      required: [amount, currency, taxIncluded]
+      properties:
+        amount: { type: integer, description: Minor units (KES cents). Integer only. }
+        currency: { type: string, enum: [KES] }
+        taxIncluded: { type: [boolean, "null"], description: null until D-16 }
+    Error:
+      type: object
+      required: [kind, message]
+      properties:
+        kind: { type: string, description: Stable machine code the UI switches on. }
+        message: { type: string, description: User-safe message. }
+        details: { type: object, additionalProperties: true }
+    Pending:
+      description: Either a concrete value or an unavailable marker citing the blocking decision.
+      oneOf:
+        - type: object
+          properties: { available: { const: true }, value: {} }
+        - type: object
+          properties:
+            available: { const: false }
+            decision: { type: string, example: D-05 }
+    Product:
+      type: object
+      required: [id, slug, name, flavour, position, subscriptionEligible, strip, images, seo, status]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        flavour: { type: string }
+        position: { type: integer }
+        subscriptionEligible: { type: boolean }
+        descriptor: { $ref: '#/components/schemas/Pending' }
+        base: { $ref: '#/components/schemas/Pending' }
+        forwardNote: { $ref: '#/components/schemas/Pending' }
+        provenance: { $ref: '#/components/schemas/Pending' }
+        ingredients: { $ref: '#/components/schemas/Pending' }
+        nutrition: { $ref: '#/components/schemas/Pending' }
+        fermentationDays: { $ref: '#/components/schemas/Pending' }
+        strip:
+          type: object
+          properties: { color: { type: string }, label: { type: string } }
+        images:
+          type: array
+          items:
+            type: object
+            required: [url, alt]
+            properties: { url: { type: string }, alt: { type: string } }
+        seo: { type: object }
+        status: { type: string, enum: [draft, active, archived] }
+        variants:
+          type: array
+          items: { $ref: '#/components/schemas/Variant' }
+    Variant:
+      type: object
+      required: [id, productId, sku, size, active]
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        sku: { type: string }
+        size: { type: object, properties: { code: { type: string, enum: ["1L"] } } }
+        price: { $ref: '#/components/schemas/Pending' }
+        compareAtPrice: { oneOf: [ { $ref: '#/components/schemas/Money' }, { type: "null" } ] }
+        active: { type: boolean }
+    Inventory:
+      type: object
+      required: [variantId, onHand, reserved, available, policy]
+      properties:
+        variantId: { type: string }
+        onHand: { type: integer }
+        reserved: { type: integer }
+        available: { type: integer, description: Derived onHand-reserved. }
+        lowStockThreshold: { $ref: '#/components/schemas/Pending' }
+        policy: { type: string, enum: [deny, backorder, preorder] }
+        nextBatch: { type: [object, "null"] }
+    Cart:
+      type: object
+      required: [id, lines, totals, updatedAt]
+      properties:
+        id: { type: string }
+        customerId: { type: [string, "null"] }
+        lines:
+          type: array
+          items:
+            type: object
+            properties:
+              variantId: { type: string }
+              quantity: { type: integer, minimum: 1 }
+              unitPrice: { $ref: '#/components/schemas/Money' }
+              productName: { type: string }
+              sku: { type: string }
+        discountCode: { type: [string, "null"] }
+        zoneId: { type: [string, "null"] }
+        totals: { $ref: '#/components/schemas/Totals' }
+        updatedAt: { type: string, format: date-time }
+    Totals:
+      type: object
+      properties:
+        subtotal: { $ref: '#/components/schemas/Money' }
+        discount: { $ref: '#/components/schemas/Money' }
+        delivery: { $ref: '#/components/schemas/Money' }
+        total: { $ref: '#/components/schemas/Money' }
+    Address:
+      type: object
+      required: [recipientName, phone, zoneId, estate, building, landmark, instructions, isDefault]
+      properties:
+        id: { type: string }
+        recipientName: { type: string }
+        phone: { type: string, description: E.164, e.g. +2547XXXXXXXX }
+        zoneId: { type: string }
+        estate: { type: string }
+        building: { type: string }
+        landmark: { type: string }
+        instructions: { type: string }
+        isDefault: { type: boolean }
+    Order:
+      type: object
+      required: [id, number, lines, totals, deliveryAddress, billingAddress, status, payments, isGift, createdAt]
+      properties:
+        id: { type: string }
+        number: { type: string }
+        customerId: { type: [string, "null"] }
+        lines: { type: array, items: { type: object } }
+        totals: { $ref: '#/components/schemas/Totals' }
+        deliveryAddress: { $ref: '#/components/schemas/Address' }
+        billingAddress: { $ref: '#/components/schemas/Address' }
+        status:
+          type: string
+          enum: [draft, awaiting_payment, payment_processing, paid, payment_failed,
+                 payment_expired, manual_reconciliation, confirmed, preparing,
+                 ready_for_dispatch, dispatched, delivered, cancelled,
+                 refund_pending, partially_refunded, refunded]
+        payments: { type: array, items: { $ref: '#/components/schemas/Payment' } }
+        isGift: { type: boolean }
+        giftNote: { type: [string, "null"] }
+        mpesaReference: { type: [string, "null"], description: Primary support key. }
+        createdAt: { type: string, format: date-time }
+    Payment:
+      type: object
+      required: [id, provider, status, amount]
+      properties:
+        id: { type: string }
+        provider: { type: string, enum: [mpesa, card] }
+        status: { type: string, enum: [initiated, pending, succeeded, failed, unknown] }
+        amount: { $ref: '#/components/schemas/Money' }
+        providerRef: { type: [string, "null"] }
+  responses:
+    BadRequest:
+      description: Validation error
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unauthorized:
+      description: No/invalid session
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Forbidden:
+      description: Authenticated but lacks permission
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    NotFound:
+      description: Resource not found
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Conflict:
+      description: Idempotency or state conflict
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+paths:
+  # ------------------------------------------------------------------ AUTH
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register; establishes a session cookie. No token in body (D-55).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, fullName, phone]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                fullName: { type: string }
+                phone: { type: string }
+      responses:
+        '201':
+          description: Session established (Set-Cookie ts_session; httpOnly)
+          content: { application/json: { schema: { type: object, properties: { customerId: { type: string }, displayName: { type: string }, expiresAt: { type: string, format: date-time } } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { description: Email already registered, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /auth/signin:
+    post:
+      tags: [Auth]
+      summary: Sign in; sets session cookie.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [email, password], properties: { email: { type: string }, password: { type: string } } } } }
+      responses:
+        '200': { description: Session established }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /auth/signout:
+    post:
+      tags: [Auth]
+      security: [{ cookieAuth: [] }]
+      summary: Clear session cookie.
+      responses: { '204': { description: Signed out } }
+  /auth/session:
+    get:
+      tags: [Auth]
+      summary: Current session descriptor or null. Used on load and route guards.
+      responses:
+        '200': { description: Session or null, content: { application/json: { schema: { type: [object, "null"] } } } }
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      security: [{ cookieAuth: [] }]
+      summary: Extend/rotate session if the mechanism supports it (D-55).
+      responses: { '200': { description: Refreshed }, '401': { $ref: '#/components/responses/Unauthorized' } }
+  /auth/password-reset/request:
+    post:
+      tags: [Auth]
+      summary: Request a reset link. Enumeration-safe — always 200 "sent" for any valid email.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { email: { type: string } } } } } }
+      responses: { '200': { description: Always "sent" } }
+  /auth/password-reset/complete:
+    post:
+      tags: [Auth]
+      summary: Complete reset with a token.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [token, newPassword], properties: { token: { type: string }, newPassword: { type: string, minLength: 8 } } } } } }
+      responses: { '200': { description: Reset complete }, '400': { $ref: '#/components/responses/BadRequest' } }
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Consume an email-verification token.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { token: { type: string } } } } } }
+      responses: { '200': { description: Verified }, '400': { $ref: '#/components/responses/BadRequest' } }
+  /auth/verify-email/resend:
+    post:
+      tags: [Auth]
+      summary: Resend verification link.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { email: { type: string } } } } } }
+      responses: { '200': { description: Sent } }
+
+  # ------------------------------------------------------------------ PRODUCTS
+  /products:
+    get:
+      tags: [Products]
+      summary: List products.
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [active, draft, archived] } }
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Product list
+          content: { application/json: { schema: { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/Product' } }, nextCursor: { type: [string, "null"] } } } } }
+  /products/{slug}:
+    get:
+      tags: [Products]
+      parameters: [{ name: slug, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Product, content: { application/json: { schema: { $ref: '#/components/schemas/Product' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /inventory/{variantId}:
+    get:
+      tags: [Products]
+      parameters: [{ name: variantId, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Inventory, content: { application/json: { schema: { $ref: '#/components/schemas/Inventory' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ------------------------------------------------------------------ COLLECTIONS / SEARCH
+  /collections:
+    get:
+      tags: [Collections]
+      responses: { '200': { description: Collections } }
+  /collections/{slug}:
+    get:
+      tags: [Collections]
+      parameters: [{ name: slug, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Collection }, '404': { $ref: '#/components/responses/NotFound' } }
+  /bundles:
+    get: { tags: [Collections], summary: List preset bundles, responses: { '200': { description: Bundles } } }
+  /bundles/{slug}:
+    get:
+      tags: [Collections]
+      parameters: [{ name: slug, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Bundle }, '404': { $ref: '#/components/responses/NotFound' } }
+  /search:
+    get:
+      tags: [Search]
+      summary: >
+        Catalogue query (filter/sort/search). NOTE the frontend feature flag
+        `siteSearch` is OFF by default (D-48). This endpoint backs filter/sort
+        over the small catalogue; forward the same CatalogueQuery the domain uses.
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses: { '200': { description: Catalogue result } }
+
+  # ------------------------------------------------------------------ CART
+  /carts:
+    post:
+      tags: [Cart]
+      summary: Create a cart (guest or attached to session).
+      responses: { '201': { description: Cart, content: { application/json: { schema: { $ref: '#/components/schemas/Cart' } } } } }
+  /carts/{id}:
+    get:
+      tags: [Cart]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Cart, content: { application/json: { schema: { $ref: '#/components/schemas/Cart' } } } }, '404': { $ref: '#/components/responses/NotFound' } }
+  /carts/{id}/lines:
+    post:
+      tags: [Cart]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [variantId, quantity], properties: { variantId: { type: string }, quantity: { type: integer, minimum: 1 } } } } } }
+      responses: { '200': { description: Updated cart, content: { application/json: { schema: { $ref: '#/components/schemas/Cart' } } } }, '409': { description: Stock error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } } }
+  /carts/{id}/lines/{variantId}:
+    put:
+      tags: [Cart]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: variantId, in: path, required: true, schema: { type: string } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [quantity], properties: { quantity: { type: integer, minimum: 0 } } } } } }
+      responses: { '200': { description: Updated cart } }
+    delete:
+      tags: [Cart]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: variantId, in: path, required: true, schema: { type: string } }
+      responses: { '200': { description: Updated cart } }
+  /carts/{id}/zone:
+    put:
+      tags: [Cart]
+      summary: Set delivery zone (available from the PDP — P-03).
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [zoneId], properties: { zoneId: { type: string } } } } } }
+      responses: { '200': { description: Updated cart } }
+
+  # ------------------------------------------------------------------ COUPONS
+  /carts/{id}/discount:
+    post:
+      tags: [Coupons]
+      summary: Apply a discount code.
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [code], properties: { code: { type: string } } } } } }
+      responses:
+        '200': { description: Updated cart }
+        '422':
+          description: Discount error (kind - not_found | expired | min_not_met | not_applicable)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    delete:
+      tags: [Coupons]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Updated cart } }
+
+  # ------------------------------------------------------------------ DELIVERY
+  /delivery/config:
+    get:
+      tags: [Delivery]
+      summary: Whole delivery config — zones, free-delivery threshold, pickup, scheduling. (D-21..26)
+      responses: { '200': { description: DeliveryConfig } }
+  /delivery/zones:
+    get: { tags: [Delivery], responses: { '200': { description: Zones } } }
+  /delivery/quote:
+    post:
+      tags: [Delivery]
+      summary: Quote a fee for a zone + cart lines. Callable from the PDP.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [zoneId, lines], properties: { zoneId: { type: string }, lines: { type: array, items: { type: object } } } } } } }
+      responses:
+        '200': { description: DeliveryQuote }
+        '422': { description: Delivery error (unserviceable/zone_not_found), content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  # ------------------------------------------------------------------ CHECKOUT
+  /checkout/revalidate:
+    post:
+      tags: [Checkout]
+      summary: >
+        Revalidate a cart before payment. ALWAYS called before every payment.
+        Returns any price/stock movement so the customer sees what changed.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [cartId], properties: { cartId: { type: string } } } } } }
+      responses: { '200': { description: RevalidationResult } }
+  /checkout/order:
+    post:
+      tags: [Checkout]
+      summary: Create the order in draft and reserve stock. Idempotency-Key REQUIRED.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cartId, deliveryAddress, billingAddress, isGift]
+              properties:
+                cartId: { type: string }
+                deliveryAddress: { $ref: '#/components/schemas/Address' }
+                billingAddress: { $ref: '#/components/schemas/Address' }
+                isGift: { type: boolean }
+                giftNote: { type: [string, "null"] }
+      responses:
+        '201': { description: Order created, content: { application/json: { schema: { $ref: '#/components/schemas/Order' } } } }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { description: Payment/stock precondition error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  # ------------------------------------------------------------------ ORDERS
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Order }, '404': { $ref: '#/components/responses/NotFound' } }
+  /orders:
+    get:
+      tags: [Orders]
+      security: [{ cookieAuth: [] }]
+      summary: Orders for the current customer.
+      parameters: [{ $ref: '#/components/parameters/Limit' }, { $ref: '#/components/parameters/Cursor' }]
+      responses: { '200': { description: Orders } }
+  /orders/lookup:
+    get:
+      tags: [Orders]
+      summary: >
+        Support lookup by phone OR M-PESA reference. The customer quotes the
+        M-PESA code, not the order number (R-21).
+      parameters: [{ name: query, in: query, required: true, schema: { type: string } }]
+      responses: { '200': { description: Matching orders } }
+
+  # ------------------------------------------------------------------ CUSTOMERS / ADDRESSES
+  /customers/me:
+    get:
+      tags: [Customers]
+      security: [{ cookieAuth: [] }]
+      responses: { '200': { description: CustomerProfile or null } }
+    patch:
+      tags: [Customers]
+      security: [{ cookieAuth: [] }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { fullName: { type: string }, phone: { type: string } } } } } }
+      responses: { '200': { description: Updated profile }, '400': { $ref: '#/components/responses/BadRequest' } }
+  /customers/me/addresses:
+    get: { tags: [Addresses], security: [{ cookieAuth: [] }], responses: { '200': { description: Addresses } } }
+    post:
+      tags: [Addresses]
+      security: [{ cookieAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Address' } } } }
+      responses: { '201': { description: Address }, '400': { $ref: '#/components/responses/BadRequest' } }
+  /customers/me/addresses/{id}:
+    put:
+      tags: [Addresses]
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Address' } } } }
+      responses: { '200': { description: Updated } }
+    delete:
+      tags: [Addresses]
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Removed } }
+  /customers/me/addresses/{id}/default:
+    put:
+      tags: [Addresses]
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Default set } }
+  /customers/me/preferences:
+    get: { tags: [Customers], security: [{ cookieAuth: [] }], responses: { '200': { description: Channel + cookie preferences } } }
+    put:
+      tags: [Customers]
+      security: [{ cookieAuth: [] }]
+      requestBody: { content: { application/json: { schema: { type: object } } } }
+      responses: { '200': { description: Updated } }
+  /customers/me/consent:
+    post:
+      tags: [Customers]
+      security: [{ cookieAuth: [] }]
+      summary: Record a consent event (append-only — D-43).
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [topic, granted, source], properties: { topic: { type: string }, granted: { type: boolean }, source: { type: string } } } } } }
+      responses: { '201': { description: ConsentEvent } }
+  /customers/me/data-requests:
+    get: { tags: [Customers], security: [{ cookieAuth: [] }], responses: { '200': { description: Data requests } } }
+    post:
+      tags: [Customers]
+      security: [{ cookieAuth: [] }]
+      summary: Request data export or deletion (a request, not an instant action — D-43).
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [kind], properties: { kind: { type: string, enum: [export, deletion] } } } } } }
+      responses: { '202': { description: Request accepted } }
+
+  # ------------------------------------------------------------------ SUBSCRIPTIONS (D-09 blocked)
+  /subscriptions/policy:
+    get:
+      tags: [Subscriptions]
+      summary: Configurable policy. Frequencies empty until D-07; management only, no billing (D-09).
+      responses: { '200': { description: SubscriptionPolicy } }
+  /subscriptions:
+    get: { tags: [Subscriptions], security: [{ cookieAuth: [] }], responses: { '200': { description: Subscriptions } } }
+  /subscriptions/{id}:
+    get:
+      tags: [Subscriptions]
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Subscription }, '404': { $ref: '#/components/responses/NotFound' } }
+  /subscriptions/{id}/actions:
+    post:
+      tags: [Subscriptions]
+      security: [{ cookieAuth: [] }]
+      summary: >
+        State transition only — pause | resume | skipNext | cancel | reactivate |
+        changeFrequency | changeFlavours | changeAddress | changePaymentMethod |
+        resolveFailedPayment. NONE moves money (D-09).
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [action], properties: { action: { type: string }, payload: { type: object } } } } } }
+      responses: { '200': { description: Updated subscription }, '422': { description: Op error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } } }
+
+  # ------------------------------------------------------------------ M-PESA
+  /payments/mpesa/initiate:
+    post:
+      tags: [Payments-MPESA]
+      summary: >
+        Start an STK push. Idempotency-Key REQUIRED. Returns an ACKNOWLEDGEMENT
+        (status initiated|pending) — NEVER success. Success arrives via callback,
+        confirmed by /status. See doc 59.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, phone]
+              properties:
+                orderId: { type: string }
+                phone: { type: string, description: Normalised 2547XXXXXXXX server-side }
+      responses:
+        '202':
+          description: STK push accepted by Safaricom
+          content: { application/json: { schema: { type: object, properties: { providerRef: { type: string, description: CheckoutRequestID }, status: { type: string, enum: [initiated, pending] } } } } }
+        '422': { description: Payment error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /payments/mpesa/status/{providerRef}:
+    get:
+      tags: [Payments-MPESA]
+      summary: Server-authoritative status by CheckoutRequestID. The polling fallback for a late callback.
+      parameters: [{ name: providerRef, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: PaymentStatusResponse (succeeded|pending|failed|unknown) } }
+  /payments/mpesa/callback:
+    post:
+      tags: [Webhooks]
+      summary: >
+        BACKEND-ONLY. Safaricom Daraja callback. Verify origin, then process
+        IDEMPOTENTLY (M-PESA delivers duplicates). The frontend never calls this.
+      requestBody: { required: true, content: { application/json: { schema: { type: object } } } }
+      responses: { '200': { description: Acknowledged (always 200 to Safaricom once accepted for processing) } }
+  /payments/mpesa/reconcile:
+    post:
+      tags: [Payments-MPESA]
+      security: [{ adminCookieAuth: [] }]
+      summary: Resolve an 'unknown' payment (lost callback). See doc 59 reconciliation.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [providerRef], properties: { providerRef: { type: string } } } } } }
+      responses: { '200': { description: ReconcileResult } }
+
+  # ------------------------------------------------------------------ CARD (D-35 blocked)
+  /payments/card/session:
+    post:
+      tags: [Payments-Card]
+      summary: >
+        Create a card PaymentIntent/Checkout session. DISABLED until D-35 (can the
+        rail settle KES?). Provider may be Stripe OR Flutterwave/Pesapal/DPO.
+        Idempotency-Key REQUIRED. See doc 60.
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [orderId], properties: { orderId: { type: string } } } } } }
+      responses:
+        '202': { description: CardSessionDescriptor (client secret / redirect URL) }
+        '501': { description: Card rail not enabled (CARD_PROVIDER=none), content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  /payments/card/webhook:
+    post:
+      tags: [Webhooks]
+      summary: >
+        BACKEND-ONLY. Card provider webhook. Verify signature FIRST; process
+        idempotently. Required events listed in doc 60.
+      responses: { '200': { description: Acknowledged } }
+
+  # ------------------------------------------------------------------ REFUNDS
+  /refunds:
+    post:
+      tags: [Refunds]
+      security: [{ adminCookieAuth: [] }]
+      summary: >
+        Initiate a refund. For M-PESA, requiresManualAction=true — it is a manual
+        B2C reversal, not an API call (D-36/37). The response reflects that.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [paymentId, amount], properties: { paymentId: { type: string }, amount: { $ref: '#/components/schemas/Money' }, reason: { type: string } } } } } }
+      responses: { '200': { description: RefundResponse (status + requiresManualAction) } }
+
+  # ------------------------------------------------------------------ ADMIN
+  /admin/products:
+    get: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'Permission - product:read', responses: { '200': { description: Products }, '403': { $ref: '#/components/responses/Forbidden' } } }
+    post: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'Permission - product:write. Audited.', responses: { '201': { description: Created }, '403': { $ref: '#/components/responses/Forbidden' } } }
+  /admin/products/{id}:
+    put: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'product:write. Audited.', parameters: [{ name: id, in: path, required: true, schema: { type: string } }], responses: { '200': { description: Updated } } }
+  /admin/products/{id}/publish:
+    post: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'product:publish. Refuses to publish a product with unresolved Pending regulated fields (D-05). Audited.', parameters: [{ name: id, in: path, required: true, schema: { type: string } }], responses: { '200': { description: Published }, '422': { description: Blocked by unresolved placeholder, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } } } }
+  /admin/inventory/{variantId}:
+    put: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'inventory:write. Every adjustment writes a StockMovement + AuditEvent.', parameters: [{ name: variantId, in: path, required: true, schema: { type: string } }], responses: { '200': { description: Adjusted } } }
+  /admin/orders:
+    get: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'order:read', responses: { '200': { description: Orders } } }
+  /admin/orders/{id}/status:
+    put:
+      tags: [Admin]
+      security: [{ adminCookieAuth: [] }]
+      summary: 'order:write. Server enforces the transition table (canTransition); an illegal jump is 422. Audited.'
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [status], properties: { status: { type: string } } } } } }
+      responses: { '200': { description: Updated }, '422': { description: Illegal transition, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } } }
+  /admin/customers:
+    get: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'customer:read', responses: { '200': { description: Customers } } }
+  /admin/content:
+    get: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'content:read', responses: { '200': { description: Content entries } } }
+    put: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'content:write / content:publish. Audited.', responses: { '200': { description: Updated } } }
+  /admin/staff:
+    get: { tags: [Admin], security: [{ adminCookieAuth: [] }], summary: 'staff:read (super_admin/store_manager)', responses: { '200': { description: Staff } } }
+
+  # ------------------------------------------------------------------ REPORTS
+  /admin/reports/{report}:
+    get:
+      tags: [Reports]
+      security: [{ adminCookieAuth: [] }]
+      summary: 'report:read. Report schema in doc 41.'
+      parameters:
+        - { name: report, in: path, required: true, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses: { '200': { description: Report data } }
+
+  # ------------------------------------------------------------------ UPLOADS
+  /admin/uploads:
+    post:
+      tags: [Uploads]
+      security: [{ adminCookieAuth: [] }]
+      summary: >
+        Request a signed upload (product imagery, etc). Backend returns a
+        pre-signed URL; the browser uploads direct to storage. Enforce
+        content-type + size server-side.
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [filename, contentType], properties: { filename: { type: string }, contentType: { type: string } } } } } }
+      responses: { '201': { description: Signed upload descriptor } }
+
+  # ------------------------------------------------------------------ AUDIT
+  /admin/audit:
+    get:
+      tags: [Audit]
+      security: [{ adminCookieAuth: [] }]
+      summary: 'audit:read. Append-only audit log (doc 40). super_admin/finance_analyst.'
+      parameters: [{ $ref: '#/components/parameters/Limit' }, { $ref: '#/components/parameters/Cursor' }]
+      responses: { '200': { description: Audit events } }

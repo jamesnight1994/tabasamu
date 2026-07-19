@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en-KE">
+<head>
+<meta charset="utf-8">
+<title>Tabasamu Sips — Homepage Visual Spec</title>
+<!--
+  VISUAL SPEC — Phase 3
+
+  ⚠ WHAT THIS IS, AND WHAT IT IS NOT.
+
+  This is a faithful re-render of the built homepage using PLAIN CSS and the
+  REAL design tokens (same hexes, same type scale, same spacing, same section
+  order, same copy).
+
+  It exists because the only HTML renderer available in the build environment
+  is WebKit-based (wkhtmltoimage), and it CANNOT parse Tailwind v4 — it ignores
+  `@layer` wholesale, which drops every utility class and collapses the page.
+  Rendering the real page through it would produce a misleading image.
+
+  So rather than ship a broken or faked screenshot, this file reproduces the
+  page from the same tokens. It is accurate to the design; it is not a
+  pixel-capture of the React build.
+
+  ⚠ The real page MUST still be screenshotted in a modern browser before sign-off.
+-->
+<style>
+  /* ---- TOKENS — identical to src/tokens/tokens.ts ---- */
+  :root{
+    --terracotta:#C05A2C; --forest:#1D6B4F; --cream:#FDF6F0;
+    --charcoal:#2D2D2D; --gold:#B8943E;
+    --surface:#FFFCFA; --sunken:#F6EDE4; --border:#E8DACB; --border-strong:#D4C0AA;
+    --ink:#2D2D2D; --ink-muted:#5C5C5C; --ink-subtle:#8A8A8A; --ink-inverse:#FDF6F0;
+    --warning-bg:#F7EFDC; --error:#8B2635; --error-bg:#F7E9EB;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--cream); color:var(--ink);
+    font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;
+    font-size:16px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:Fraunces,'Iowan Old Style',Georgia,serif;font-weight:400;}
+  h1{font-size:64px;line-height:.95;letter-spacing:-.02em}
+  h2{font-size:40px;line-height:1;letter-spacing:-.015em}
+  h3{font-size:21px;line-height:1.15}
+  .band{max-width:1440px;margin:0 auto;padding:96px 32px}
+  .eyebrow{font-size:12px;font-weight:500;letter-spacing:.22em;text-transform:uppercase}
+  .mono{font-family:'JetBrains Mono',Menlo,monospace;font-size:13px}
+  .muted{color:var(--ink-muted)}
+  .measure{max-width:65ch}
+  a{color:var(--forest)}
+
+  /* header */
+  .hdr{background:var(--cream);border-bottom:1px solid var(--border)}
+  .hdr-in{max-width:1440px;margin:0 auto;padding:0 32px;height:76px;
+    display:flex;align-items:center;justify-content:space-between}
+  .nav{display:flex;gap:4px}
+  .nav a{padding:12px;font-size:14px;color:var(--ink);text-decoration:none}
+  .btn{display:inline-block;padding:16px 32px;border-radius:4px;font-size:18px;
+    font-weight:600;text-decoration:none;border:1px solid transparent}
+  .btn-p{background:var(--charcoal);color:var(--cream)}      /* D-04a 12.87:1 */
+  .btn-s{background:transparent;color:var(--ink);border-color:var(--terracotta)}
+  .btn-g{background:transparent;color:var(--ink);font-size:16px;padding:12px 24px}
+
+  /* the awaiting-asset panel — the R-03 state */
+  .slot{border:1px dashed var(--gold);background:var(--warning-bg);border-radius:4px;
+    display:flex;flex-direction:column;justify-content:space-between;padding:12px;
+    position:relative;overflow:hidden}
+  .slot.blocked{border-color:var(--error);background:var(--error-bg)}
+  .slot .hatch{position:absolute;inset:0;opacity:.06;
+    background:repeating-linear-gradient(45deg,currentColor 0 1px,transparent 1px 9px)}
+  .slot .top{display:flex;justify-content:space-between;position:relative}
+  .slot .bot{position:relative}
+  .slot .id{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink)}
+  .slot .note{font-size:13px;color:var(--ink-muted);line-height:1.35}
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:5fr 7fr;gap:48px;align-items:center}
+  .hero .type{display:flex;flex-direction:column;gap:24px}
+  .ctas{display:flex;gap:12px}
+
+  /* product grid */
+  .grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:24px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:16px;display:flex;flex-direction:column;gap:16px}
+  .swatch{display:inline-flex;align-items:center;gap:8px}
+  .dot{width:10px;height:10px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+  .price{font-family:Fraunces,Georgia,serif;font-size:18px;font-weight:500}
+  .pill{border:1px dashed var(--gold);background:var(--warning-bg);border-radius:2px;
+    padding:1px 6px;font-family:'JetBrains Mono',monospace;font-size:11px}
+
+  /* proposition — forest band */
+  .forest{background:var(--forest);color:var(--ink-inverse)}
+  .forest h2{color:var(--ink-inverse)}
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:48px}
+  .numeral{font-family:Fraunces,Georgia,serif;font-size:40px;line-height:1;opacity:.3}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .sunken{background:var(--sunken)}
+  .mantra{font-family:Fraunces,Georgia,serif;font-style:italic;font-size:21px;
+    color:var(--forest);line-height:1.45}
+  .acc{border-bottom:1px solid var(--border);padding:16px 0;
+    display:flex;justify-content:space-between;font-weight:500;font-size:16px}
+  .dashed{border:1px dashed var(--border-strong);border-radius:8px;padding:20px}
+  .warn{border:1px dashed var(--gold);background:var(--warning-bg);border-radius:4px;padding:16px}
+  .input{background:var(--sunken);border:1px solid var(--border);border-radius:4px;
+    padding:14px 16px;color:var(--ink-subtle);font-size:16px}
+  .ftr{border-top:1px solid var(--border);margin-top:96px}
+  .fcols{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+  .fcols a{display:block;padding:10px 0;font-size:14px;color:var(--ink);text-decoration:none}
+</style>
+
+<style>
+  /* ══ MOBILE — 360px, the authoring baseline ══ */
+  body{font-size:15px}
+  h1{font-size:36px}  h2{font-size:28px}  h3{font-size:18px}
+  .band{padding:64px 16px}
+  .hdr-in{padding:0 16px;height:60px}
+  .nav{display:none}
+
+  /* HERO — the deliberate mobile content order:
+     eyebrow → headline → IMAGE → standfirst → CTAs */
+  .hero{display:flex;flex-direction:column;gap:32px}
+  .hero .type{display:contents}
+  .hero .type .eyebrow{order:1}
+  .hero h1{order:2}
+  .hero > .slot{order:3;aspect-ratio:4/5 !important;min-height:0 !important}
+  .hero .type .measure{order:4}
+  .hero .ctas{order:5;flex-direction:column}
+  .btn{display:block;text-align:center;padding:16px}
+
+  /* 2 COLUMNS at 360px — never 1. The customer must perceive a RANGE. */
+  .grid5{grid-template-columns:1fr 1fr;gap:12px}
+  .card{padding:12px;gap:10px}
+  .card h3{font-size:16px}
+
+  .three{grid-template-columns:1fr;gap:32px}
+  .two{grid-template-columns:1fr;gap:32px}
+  .fcols{grid-template-columns:1fr 1fr;gap:24px}
+  .dashed{min-height:120px !important}
+  section[style*="text-align:center"] div[style*="repeat(3"]{grid-template-columns:1fr !important}
+  div[style*="repeat(3,1fr)"]{grid-template-columns:1fr !important}
+  div[style*="justify-content:space-between"][style*="flex-end"]{flex-direction:column;align-items:flex-start !important;gap:24px}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header class="hdr"><div class="hdr-in">
+  <svg width="132" height="157" viewBox="0 0 100 118.6" style="height:44px;width:auto">
+    <g transform="scale(0.26)" fill="#C05A2C">
+      <circle cx="50" cy="70" r="5"/>
+      <ellipse cx="50" cy="30" rx="6" ry="20"/>
+      <ellipse cx="82" cy="42" rx="5" ry="18" transform="rotate(38 82 42)"/>
+      <ellipse cx="18" cy="42" rx="5" ry="18" transform="rotate(-38 18 42)"/>
+      <path d="M8 78 Q50 120 92 78 Q50 100 8 78Z"/>
+    </g>
+    <text x="50" y="112" font-family="Fraunces,Georgia,serif" font-size="17"
+          fill="#1D6B4F" text-anchor="middle" letter-spacing="-0.35">Tabasamu Sips</text>
+  </svg>
+  <nav class="nav"><a>Shop</a><a>Our Story</a><a>Ingredients</a><a>Journal</a></nav>
+  <div style="font-size:14px">Cart</div>
+</div></header>
+
+<!-- ══ 1. HERO ══ -->
+<section class="band" style="padding-top:64px">
+  <div class="hero">
+    <div class="type">
+      <p class="eyebrow" style="color:var(--terracotta)">Caffeine-free rooibos kombucha</p>
+      <h1>Brewed slowly,<br>in Nairobi.</h1>
+      <p class="measure muted" style="font-size:18px">A rooibos base, fermented in small batches
+        and finished with fruit grown here. No caffeine, and nothing to recover from.</p>
+      <div class="ctas">
+        <a class="btn btn-p">Shop the range</a>
+        <a class="btn btn-s">How it is made</a>
+      </div>
+    </div>
+    <div class="slot" style="aspect-ratio:3/2;min-height:420px">
+      <div class="hatch"></div>
+      <div class="top"><span class="eyebrow muted">Awaiting photography</span><span class="mono muted">3/2</span></div>
+      <div class="bot"><p class="id">hero-primary</p>
+        <p class="note">A one-litre bottle on a worktop in late afternoon light, condensation on the glass.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 2. COLLECTION ══ -->
+<section class="band">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:48px">
+    <div>
+      <p class="eyebrow" style="color:var(--terracotta);margin-bottom:16px">The range</p>
+      <h2>Six flavours, one system.</h2>
+      <p class="measure muted" style="margin-top:16px;font-size:18px">The label never changes. Only the
+        strip along the bottom does — so you learn to find your one by its colour.</p>
+    </div>
+    <a class="btn btn-g">See all six</a>
+  </div>
+  <div class="grid5">
+    <!-- Grape Ginger -->
+    <div class="card">
+      <div class="slot" style="aspect-ratio:4/5"><div class="hatch"></div>
+        <div class="top"><span class="eyebrow muted">Awaiting</span><span class="mono muted">4/5</span></div>
+        <div class="bot"><p class="id">product-grape-ginger</p></div></div>
+      <div class="swatch"><span class="dot" style="background:#4A2A55"></span>
+        <span class="eyebrow muted">GRAPE GINGER</span></div>
+      <h3>Grape Ginger</h3>
+      <p class="mono muted">1 Litre</p>
+      <p style="font-size:13px;color:var(--forest)">· In stock</p>
+      <div style="display:flex;gap:8px;align-items:baseline">
+        <span class="price">KES 550</span><span class="pill">indicative</span></div>
+      <a class="btn btn-p" style="text-align:center;font-size:16px;padding:14px">Add to box</a>
+    </div>
+    <!-- Pineapple -->
+    <div class="card">
+      <div class="slot" style="aspect-ratio:4/5"><div class="hatch"></div>
+        <div class="top"><span class="eyebrow muted">Awaiting</span><span class="mono muted">4/5</span></div>
+        <div class="bot"><p class="id">product-pineapple</p></div></div>
+      <div class="swatch"><span class="dot" style="background:#E9C25B"></span>
+        <span class="eyebrow muted">PINEAPPLE</span></div>
+      <h3>Pineapple</h3>
+      <p class="mono muted">1 Litre</p>
+      <p style="font-size:13px;color:var(--forest)">· In stock</p>
+      <div style="display:flex;gap:8px;align-items:baseline">
+        <span class="price">KES 550</span><span class="pill">indicative</span></div>
+      <a class="btn btn-p" style="text-align:center;font-size:16px;padding:14px">Add to box</a>
+    </div>
+    <!-- Pineapple Ginger -->
+    <div class="card">
+      <div class="slot" style="aspect-ratio:4/5"><div class="hatch"></div>
+        <div class="top"><span class="eyebrow muted">Awaiting</span><span class="mono muted">4/5</span></div>
+        <div class="bot"><p class="id">product-pineapple-ginger</p></div></div>
+      <div class="swatch"><span class="dot" style="background:#C05A2C"></span>
+        <span class="eyebrow muted">PINEAPPLE GINGER</span></div>
+      <h3>Pineapple Ginger</h3>
+      <p class="mono muted">1 Litre</p>
+      <p style="font-size:13px;color:var(--forest)">· In stock</p>
+      <div style="display:flex;gap:8px;align-items:baseline">
+        <span class="price">KES 550</span><span class="pill">indicative</span></div>
+      <a class="btn btn-p" style="text-align:center;font-size:16px;padding:14px">Add to box</a>
+    </div>
+    <!-- Passion -->
+    <div class="card">
+      <div class="slot" style="aspect-ratio:4/5"><div class="hatch"></div>
+        <div class="top"><span class="eyebrow muted">Awaiting</span><span class="mono muted">4/5</span></div>
+        <div class="bot"><p class="id">product-passion</p></div></div>
+      <div class="swatch"><span class="dot" style="background:#0B8BFF"></span>
+        <span class="eyebrow muted">PASSION</span></div>
+      <h3>Passion</h3>
+      <p class="mono muted">1 Litre</p>
+      <p style="font-size:13px;color:var(--forest)">· In stock</p>
+      <div style="display:flex;gap:8px;align-items:baseline">
+        <span class="price">KES 550</span><span class="pill">indicative</span></div>
+      <a class="btn btn-p" style="text-align:center;font-size:16px;padding:14px">Add to box</a>
+    </div>
+    <!-- Beetroot — BLOCKED asset -->
+    <div class="card">
+      <div class="slot blocked" style="aspect-ratio:4/5"><div class="hatch"></div>
+        <div class="top"><span class="eyebrow muted">Asset blocked</span><span class="mono muted">4/5</span></div>
+        <div class="bot"><p class="id">product-beetroot</p>
+        <p class="note">supplied frame has illegible label typography. RESHOOT REQUIRED.</p></div></div>
+      <div class="swatch"><span class="dot" style="background:#8B2635"></span>
+        <span class="eyebrow muted">BEETROOT</span></div>
+      <h3>Beetroot</h3>
+      <p class="mono muted">1 Litre</p>
+      <p style="font-size:13px;color:var(--forest)">· In stock</p>
+      <div style="display:flex;gap:8px;align-items:baseline">
+        <span class="price">KES 550</span><span class="pill">indicative</span></div>
+      <a class="btn btn-p" style="text-align:center;font-size:16px;padding:14px">Add to box</a>
+    </div>
+  </div>
+  <p class="mono muted" style="margin-top:24px">⛔ A-07 · Gooseberry has no photograph and is excluded from the storefront (status: draft)</p>
+</section>
+
+<!-- ══ 3. PROPOSITION ══ -->
+<section class="forest"><div class="band">
+  <p class="eyebrow" style="opacity:.7;margin-bottom:16px">The short version</p>
+  <h2 style="margin-bottom:48px">Three things worth knowing.</h2>
+  <div class="three">
+    <div><div class="numeral">01</div>
+      <h3 style="color:var(--ink-inverse);margin:12px 0">No caffeine</h3>
+      <p style="font-size:14px;opacity:.85">Rooibos has none to begin with, so none has to be taken out.
+        You can drink this at four in the afternoon and still sleep.</p></div>
+    <div><div class="numeral">02</div>
+      <h3 style="color:var(--ink-inverse);margin:12px 0">Small batches</h3>
+      <p style="font-size:14px;opacity:.85">We brew in quantities small enough that every batch is tasted
+        before it leaves. When a flavour sells out, it is because it sold out.</p></div>
+    <div><div class="numeral">03</div>
+      <h3 style="color:var(--ink-inverse);margin:12px 0">Kenyan fruit</h3>
+      <p style="font-size:14px;opacity:.85">Passion, pineapple, beetroot, gooseberry, grape. Grown here,
+        pressed here, and added after the ferment so the flavour stays bright.</p></div>
+  </div>
+</div></section>
+
+<!-- ══ 4. INGREDIENTS ══ -->
+<section class="band"><div class="two">
+  <div class="slot" style="aspect-ratio:3/2;min-height:300px"><div class="hatch"></div>
+    <div class="top"><span class="eyebrow muted">Awaiting photography</span><span class="mono muted">3/2</span></div>
+    <div class="bot"><p class="id">ingredients-fruit</p>
+    <p class="note">Kenyan fruit before pressing: passionfruit, pineapple, beetroot and gooseberries.</p></div></div>
+  <div>
+    <p class="eyebrow" style="color:var(--terracotta);margin-bottom:16px">What goes in</p>
+    <h2 style="margin-bottom:24px">Fruit first, then patience.</h2>
+    <p class="measure muted" style="font-size:18px;margin-bottom:24px">Every bottle starts the same way:
+      rooibos, steeped and cooled, then fermented with a culture we have kept alive since the first kitchen
+      batch. The fruit goes in last, once the ferment has done its work, which is why the flavour still
+      tastes like the fruit and not like the fermentation.</p>
+    <a class="btn btn-s">Read the full process</a>
+  </div>
+</div></section>
+
+<!-- ══ 5. PROCESS ══ -->
+<section class="sunken"><div class="band"><div class="two">
+  <div>
+    <p class="eyebrow" style="color:var(--terracotta);margin-bottom:16px">How it is made</p>
+    <h2 style="margin-bottom:24px">Four steps, and a wait.</h2>
+    <div class="acc"><span>01 · Steep — Rooibos, hot water, and time.</span><span>⌄</span></div>
+    <div class="acc"><span>02 · Ferment — The culture goes to work.</span><span>⌄</span></div>
+    <div class="acc"><span>03 · Finish — Fruit, added last.</span><span>⌄</span></div>
+    <div class="acc"><span>04 · Bottle — One litre, sealed cold.</span><span>⌄</span></div>
+    <p class="mono" style="color:var(--ink-subtle);margin-top:24px">⛔ D-52 · ferment duration not confirmed — no figure is published</p>
+  </div>
+  <div class="slot" style="aspect-ratio:3/2;min-height:300px"><div class="hatch"></div>
+    <div class="top"><span class="eyebrow muted">Awaiting photography</span><span class="mono muted">3/2</span></div>
+    <div class="bot"><p class="id">process-ferment</p>
+    <p class="note">A fermentation vessel in a Nairobi kitchen, the culture visible at the surface.</p></div></div>
+</div></div></section>
+
+<!-- ══ 6. ORIGIN ══ -->
+<section class="band"><div class="two">
+  <div>
+    <p class="eyebrow" style="color:var(--terracotta);margin-bottom:16px">Where it began</p>
+    <h2 style="margin-bottom:24px">A kitchen in Nairobi.</h2>
+    <div class="measure muted" style="font-size:18px;display:flex;flex-direction:column;gap:16px">
+      <p>It started because someone wanted a drink with a bit of complexity to it, and did not want to be
+        awake at midnight for the privilege.</p>
+      <p>Rooibos was the answer to the caffeine. The fruit was the answer to everything else — and the fruit
+        was already here, at the market, better than anything that could be shipped in.</p>
+      <p>The batches got bigger. The kitchen did not.</p>
+    </div>
+    <p class="mantra" style="margin:32px 0">Rooted in the soil, crafted for the soul.</p>
+    <a class="btn btn-s">The whole story</a>
+  </div>
+  <div class="slot" style="aspect-ratio:4/5;min-height:400px"><div class="hatch"></div>
+    <div class="top"><span class="eyebrow muted">Awaiting photography</span><span class="mono muted">4/5</span></div>
+    <div class="bot"><p class="id">origin-kitchen</p>
+    <p class="note">⚠ NO TOURISM SHORTHAND. A working kitchen: surfaces, vessels, hands mid-task.</p></div></div>
+</div></section>
+
+<!-- ══ 7. SUBSCRIPTION ══ -->
+<section class="band">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:48px">
+  <div class="two">
+    <div>
+      <p class="eyebrow" style="color:var(--terracotta);margin-bottom:16px">Recurring delivery</p>
+      <h2 style="margin-bottom:24px">The same box, when you want it.</h2>
+      <p class="measure muted" style="font-size:18px">Pick your flavours and how often you want them.
+        We will send the same box on the same day, and you can change it or stop it whenever you like.</p>
+    </div>
+    <div>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px">
+        <div style="display:flex;gap:12px"><span style="width:16px;height:1px;background:var(--gold);margin-top:12px;flex-shrink:0"></span>
+          <span class="muted" style="font-size:14px">You stop running out of the one you actually drink.</span></div>
+        <div style="display:flex;gap:12px"><span style="width:16px;height:1px;background:var(--gold);margin-top:12px;flex-shrink:0"></span>
+          <span class="muted" style="font-size:14px">Change the flavours, the size, or the date at any time.</span></div>
+        <div style="display:flex;gap:12px"><span style="width:16px;height:1px;background:var(--gold);margin-top:12px;flex-shrink:0"></span>
+          <span class="muted" style="font-size:14px">Skip a delivery without cancelling anything.</span></div>
+      </div>
+      <div class="warn">
+        <p class="mono" style="margin-bottom:8px">⛔ D-09 · billing model not chosen</p>
+        <p class="note">M-PESA has no card-on-file equivalent, so a recurring charge cannot be taken
+          silently. No savings figure is shown, because none has been approved.</p>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ══ 8. SOCIAL PROOF ══ -->
+<section class="sunken"><div class="band" style="text-align:center">
+  <p class="eyebrow muted" style="margin-bottom:16px">What people say</p>
+  <h2 style="margin-bottom:24px">Nothing to show here yet.</h2>
+  <p class="muted" style="font-size:18px;max-width:48ch;margin:0 auto 48px">We would rather show you nothing
+    than show you something we wrote ourselves. When customers say something worth repeating, and give us
+    permission to repeat it, it will be here.</p>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:left">
+    <div class="dashed" style="min-height:160px;display:flex;flex-direction:column;justify-content:space-between">
+      <p style="font-style:italic;color:var(--ink-subtle);font-size:14px">Awaiting an approved customer quote.</p>
+      <p class="mono" style="color:var(--ink-subtle);font-size:11px">testimonial-1 · name, and permission to use it</p></div>
+    <div class="dashed" style="min-height:160px;display:flex;flex-direction:column;justify-content:space-between">
+      <p style="font-style:italic;color:var(--ink-subtle);font-size:14px">Awaiting an approved customer quote.</p>
+      <p class="mono" style="color:var(--ink-subtle);font-size:11px">testimonial-2 · name, and permission to use it</p></div>
+    <div class="dashed" style="min-height:160px;display:flex;flex-direction:column;justify-content:space-between">
+      <p style="font-style:italic;color:var(--ink-subtle);font-size:14px">Awaiting an approved customer quote.</p>
+      <p class="mono" style="color:var(--ink-subtle);font-size:11px">testimonial-3 · name, and permission to use it</p></div>
+  </div>
+</div></section>
+
+<!-- ══ 9. WHOLESALE ══ -->
+<section class="band">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:32px">
+    <div>
+      <p class="eyebrow" style="color:var(--terracotta);margin-bottom:16px">For business</p>
+      <h2 style="margin-bottom:24px">Cafés, offices, and events.</h2>
+      <p class="measure muted" style="font-size:18px">We supply a small number of places in Nairobi, and we
+        take corporate orders. If you would like the numbers, tell us roughly what you need and we will send them.</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-shrink:0">
+      <a class="btn btn-s">Wholesale enquiries</a><a class="btn btn-g">Corporate orders</a></div>
+  </div>
+</section>
+
+<!-- ══ 10. NEWSLETTER ══ -->
+<section class="sunken"><div class="band"><div class="two">
+  <div>
+    <p class="eyebrow" style="color:var(--terracotta);margin-bottom:16px">Keep in touch</p>
+    <h2 style="margin-bottom:24px">When a batch is ready, we will tell you.</h2>
+    <p class="measure muted" style="font-size:18px">Restocks, new flavours, and not much else. We email rarely.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <label style="font-size:14px;font-weight:500">Email address</label>
+    <p style="font-size:13px;color:var(--ink-muted)">We will only use your address to send you these emails.
+      You can unsubscribe from any of them.</p>
+    <div class="input">you@example.com</div>
+    <a class="btn btn-p" style="text-align:center">Sign up</a>
+    <p class="mono" style="color:var(--ink-subtle);font-size:11px">⛔ D-40 · no email provider configured — this form is not connected</p>
+  </div>
+</div></div></section>
+
+<!-- ══ FOOTER ══ -->
+<footer class="ftr"><div class="band" style="padding-top:64px">
+  <div class="fcols">
+    <div><p class="eyebrow muted" style="margin-bottom:16px">Shop</p>
+      <a>All flavours</a><a>Build a Box</a><a>Subscriptions</a></div>
+    <div><p class="eyebrow muted" style="margin-bottom:16px">Discover</p>
+      <a>Our Story</a><a>Ingredients</a><a>Journal</a><a>Stockists</a></div>
+    <div><p class="eyebrow muted" style="margin-bottom:16px">Business</p>
+      <a>Wholesale</a><a>Corporate orders</a><a>Contact</a><a>FAQs</a></div>
+    <div><p class="eyebrow muted" style="margin-bottom:16px">Legal</p>
+      <a>Privacy</a><a>Terms</a><a>Delivery &amp; returns</a><a>Accessibility</a></div>
+  </div>
+  <div style="border-top:1px solid var(--border);margin-top:64px;padding-top:32px;
+       display:flex;justify-content:space-between;align-items:flex-end">
+    <span class="mantra">Rooted in the soil, crafted for the soul.</span>
+    <div style="text-align:right">
+      <p class="muted" style="font-size:13px">Brewed in Nairobi, Kenya.</p>
+      <p class="mono" style="color:var(--ink-muted);font-size:11px">© 2026 Tabasamu Sips</p></div>
+  </div>
+</div></footer>
+
+</body>
+</html>
