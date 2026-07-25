@@ -1,0 +1,41 @@
+# Render Blueprint — Medusa backend for Tabasamu (storefront stays on Vercel).
+# Postgres + Key Value may already exist; this documents the web service wiring.
+# Prefer linking DATABASE_URL / REDIS_URL from the dashboard if services pre-exist.
+
+services:
+  - type: web
+    name: tabasamu-medusa
+    runtime: node
+    plan: free
+    region: oregon
+    branch: dev
+    autoDeploy: true
+    buildCommand: corepack enable && cd commerce && yarn install --immutable && yarn workspace @dtc/backend build
+    startCommand: cd commerce/apps/backend && yarn start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_SSL
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: COOKIE_SECRET
+        generateValue: true
+      - key: STORE_CORS
+        value: https://tabasamu-git-dev-jamesnight1994s-projects.vercel.app,https://tabasamu-delta.vercel.app,http://localhost:3000
+      - key: ADMIN_CORS
+        value: https://tabasamu-git-dev-jamesnight1994s-projects.vercel.app,https://tabasamu-delta.vercel.app,http://localhost:9000,http://localhost:3000
+      - key: AUTH_CORS
+        value: https://tabasamu-git-dev-jamesnight1994s-projects.vercel.app,https://tabasamu-delta.vercel.app,http://localhost:3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tabasamu-medusa-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: tabasamu-medusa-redis
+          type: keyvalue
+          property: connectionString
