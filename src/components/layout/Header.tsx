@@ -30,12 +30,11 @@ import { Drawer } from '../primitives/Overlay';
 import { cn } from '../../lib/utils/cn';
 import { isEnabled } from '../../lib/flags';
 
-/** Five items maximum. Wholesale, Corporate, FAQs, Contact live in the footer. */
+/** Four primary items. Wholesale, Corporate, FAQs, Contact live in the footer. */
 export const PRIMARY_NAV = [
   { href: '/shop', label: 'Shop' },
   { href: '/our-story', label: 'Our Story' },
   { href: '/ingredients', label: 'Ingredients' },
-  { href: '/journal', label: 'Journal' },
   { href: '/stockists', label: 'Stockists', flag: 'stockists' as const },
 ] as const;
 
