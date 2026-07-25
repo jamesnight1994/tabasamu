@@ -23,7 +23,8 @@ let cached: Adapters | null = null;
 
 export const getAdapters = (): Adapters => {
   if (cached) return cached;
-  cached = clientEnv().NEXT_PUBLIC_ADAPTERS === 'http'
+  const mode = clientEnv().NEXT_PUBLIC_ADAPTERS;
+  cached = mode === 'http'
     ? createHttpAdapters()
     : createMockAdapters();
   return cached;

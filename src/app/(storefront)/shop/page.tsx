@@ -60,16 +60,6 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const query = parseQuery(flat);
   const adapters = getAdapters();
 
-  /**
-   * ⚠ THE ERROR STATE IS REAL, NOT DECORATIVE.
-   *
-   *   The mock adapter injects failures on purpose. If the catalogue cannot
-   *   load we render an honest error with a retry — NOT an empty grid, which a
-   *   customer would read as "this shop has nothing in it".
-   *
-   *   An empty result is a FACT. A failed fetch is a FAULT. They must never
-   *   look the same.
-   */
   let products;
   try {
     products = await adapters.products.list();
