@@ -18,9 +18,11 @@ RUN yarn install --immutable
 FROM base AS development
 ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/.yarn ./.yarn
 COPY package.json yarn.lock .yarnrc.yml ./
 EXPOSE 3000
-CMD ["yarn", "dev", "--hostname", "0.0.0.0", "--port", "3000"]
+# Named volume for node_modules can be stale after npm→Yarn; reinstall on start.
+CMD ["sh", "-c", "yarn install && yarn dev --hostname 0.0.0.0 --port 3000"]
 
 # ---------- production build ----------
 FROM base AS builder
