@@ -16,6 +16,7 @@
     "medusa": "medusa",
     "build": "medusa build",
     "start": "medusa start",
+    "start:prod": "medusa db:migrate && medusa start",
     "dev": "medusa develop",
     "lint": "medusa lint",
     "seed": "medusa exec ./src/migration-scripts/initial-data-seed.ts",

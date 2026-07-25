@@ -52,6 +52,30 @@ const isProd =
   (process.env.NODE_ENV === "production" && appEnv !== "development" && appEnv !== "staging") ||
   appEnv === "production";
 
+/** Hosted Medusa origin from env (Render, Medusa Cloud, etc.) — for CSP + next/image. */
+const apiOrigin = (() => {
+  const raw = (process.env.NEXT_PUBLIC_API_URL || "").trim();
+  if (!raw) return null;
+  try {
+    return new URL(raw);
+  } catch {
+    return null;
+  }
+})();
+
+const apiCspOrigin = apiOrigin ? `${apiOrigin.protocol}//${apiOrigin.host}` : null;
+
+const apiRemotePatterns: NonNullable<NextConfig["images"]>["remotePatterns"] = apiOrigin
+  ? [
+      {
+        protocol: apiOrigin.protocol.replace(":", "") as "http" | "https",
+        hostname: apiOrigin.hostname,
+        ...(apiOrigin.port ? { port: apiOrigin.port } : {}),
+        pathname: "/**",
+      },
+    ]
+  : [];
+
 /**
  * Built as an array of directives so it is readable and diff-able. Kept in
  * sync with the site's real asset origins — every entry is justified.
@@ -63,13 +87,12 @@ const contentSecurityPolicy = [
   `script-src 'self' 'unsafe-inline'`,
   // Inline styles = design-system swatches + Next.js injected styles.
   `style-src 'self' 'unsafe-inline'`,
-  // All imagery is local /public today; Medusa product media is served from the API host.
-  // `data:` covers tiny inlined assets. `http://localhost:9000` / `127.0.0.1:9000` for local Medusa.
-  `img-src 'self' data: http://localhost:9000 http://127.0.0.1:9000`,
+  // Local Medusa + optional hosted API (NEXT_PUBLIC_API_URL) for product media.
+  `img-src 'self' data: http://localhost:9000 http://127.0.0.1:9000${apiCspOrigin ? ` ${apiCspOrigin}` : ""}`,
   // Self-hosted woff2 (Fraunces, DM Sans) — no Google Fonts network fetch.
   `font-src 'self'`,
-  // XHR/fetch: self + local Medusa Store API when adapters=http.
-  `connect-src 'self' http://localhost:9000 http://127.0.0.1:9000`,
+  // XHR/fetch: self + local Medusa + optional hosted Store API.
+  `connect-src 'self' http://localhost:9000 http://127.0.0.1:9000${apiCspOrigin ? ` ${apiCspOrigin}` : ""}`,
   // This site is never legitimately framed.
   `frame-ancestors 'none'`,
   // Constrain the <base> element (defends against base-tag injection).
@@ -124,12 +147,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
 
   images: {
-    // localhost/127.0.0.1: browser / host-side Medusa. `medusa`: Docker Compose
-    // service name used after server-side URL rewrite for the Image optimizer.
+    // localhost/127.0.0.1 + medusa: local Docker. Extra hosts from NEXT_PUBLIC_API_URL
+    // (e.g. Render onrender.com) for Vercel preview / hosted Medusa.
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "9000", pathname: "/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "9000", pathname: "/**" },
       { protocol: "http", hostname: "medusa", port: "9000", pathname: "/**" },
+      ...apiRemotePatterns,
     ],
   },
 

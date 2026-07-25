@@ -48,6 +48,7 @@ services:
     environment:
       NODE_ENV: development
       DATABASE_URL: postgres://medusa:medusa@postgres:5432/medusa
+      DATABASE_SSL: "false"
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-supersecret_jwt_change_me}
       COOKIE_SECRET: ${COOKIE_SECRET:-supersecret_cookie_change_me}
