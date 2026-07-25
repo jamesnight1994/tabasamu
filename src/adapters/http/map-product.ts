@@ -5,6 +5,7 @@
 
 import {
   type Product,
+  type ProductImage,
   type Variant,
   type FlavourSlug,
   FLAVOUR_SLUGS,
@@ -26,12 +27,21 @@ export interface MedusaStoreVariant {
   prices?: Array<{ amount?: number; currency_code?: string }> | null;
 }
 
+export interface MedusaStoreImage {
+  id?: string;
+  url?: string | null;
+  alt?: string | null;
+  rank?: number | null;
+}
+
 export interface MedusaStoreProduct {
   id: string;
   title: string;
   handle?: string | null;
   status?: string | null;
   description?: string | null;
+  thumbnail?: string | null;
+  images?: MedusaStoreImage[] | null;
   variants?: MedusaStoreVariant[] | null;
   metadata?: Record<string, unknown> | null;
 }
@@ -58,6 +68,80 @@ const variantPrice = (v: MedusaStoreVariant): Variant['price'] => {
   return money;
 };
 
+/**
+ * Make Medusa file URLs absolute and reachable by `next/image`.
+ *
+ * Medusa Store returns browser-facing hosts (e.g. http://localhost:9000/static/…).
+ * The Image optimizer fetches that URL from the Next process — in Docker that is
+ * the app container, where localhost:9000 is refused. Rewrite public API hosts to
+ * MEDUSA_BACKEND_URL (e.g. http://medusa:9000) on the server only; the browser
+ * still loads via `/_next/image?url=…` (same-origin).
+ */
+export const resolveMedusaMediaUrl = (url: string): string => {
+  const trimmed = url.trim();
+  if (!trimmed) return trimmed;
+
+  let absolute = trimmed;
+  if (!/^(https?:|data:|blob:)/i.test(trimmed)) {
+    const base = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+    if (!base) return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+    absolute = `${base}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
+  }
+
+  if (typeof window !== 'undefined') return absolute;
+
+  const internal = (process.env.MEDUSA_BACKEND_URL || '').replace(/\/$/, '');
+  if (!internal) return absolute;
+
+  try {
+    const media = new URL(absolute);
+    const publicBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+    const publicHost = publicBase ? new URL(publicBase).host : '';
+    const rewrite =
+      media.host === 'localhost:9000' ||
+      media.host === '127.0.0.1:9000' ||
+      (publicHost !== '' && media.host === publicHost);
+    if (!rewrite) return absolute;
+
+    const backend = new URL(internal);
+    media.protocol = backend.protocol;
+    media.host = backend.host; // hostname + port
+    return media.toString();
+  } catch {
+    return absolute;
+  }
+};
+
+const mapImages = (raw: MedusaStoreProduct, productName: string): ProductImage[] => {
+  const fromGallery = (raw.images ?? [])
+    .map((img, i) => {
+      const url = img.url?.trim();
+      if (!url) return null;
+      return {
+        src: resolveMedusaMediaUrl(url),
+        alt: img.alt?.trim() || productName,
+        width: 1200,
+        height: 1500,
+        role: (i === 0 ? 'hero' : 'packshot') as ProductImage['role'],
+      };
+    })
+    .filter((x): x is ProductImage => x !== null);
+
+  if (fromGallery.length > 0) return fromGallery;
+
+  const thumb = raw.thumbnail?.trim();
+  if (!thumb) return [];
+  return [
+    {
+      src: resolveMedusaMediaUrl(thumb),
+      alt: productName,
+      width: 1200,
+      height: 1500,
+      role: 'hero',
+    },
+  ];
+};
+
 export const mapMedusaProduct = (raw: MedusaStoreProduct, position = 0): Product => {
   const handle = (raw.handle ?? raw.id).toLowerCase();
   const slug: FlavourSlug = isFlavourSlug(handle) ? handle : 'passion';
@@ -73,7 +157,9 @@ export const mapMedusaProduct = (raw: MedusaStoreProduct, position = 0): Product
     active: true,
   }));
 
-  return {
+  const images = mapImages(raw, raw.title);
+
+  const mapped: Product = {
     id: pid,
     slug,
     name: raw.title,
@@ -108,7 +194,9 @@ export const mapMedusaProduct = (raw: MedusaStoreProduct, position = 0): Product
               active: true,
             },
           ],
-    images: [],
+    images,
     status: raw.status === 'published' || raw.status === 'PUBLISHED' ? 'active' : 'draft',
   };
+
+  return mapped;
 };

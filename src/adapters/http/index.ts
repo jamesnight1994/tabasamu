@@ -109,9 +109,16 @@ const setStoredCartId = (id: string | null): void => {
   else window.localStorage.removeItem(CART_ID_KEY);
 };
 
+// Medusa Store fields: nested `*variants.calculated_price` / `*variants.prices`
+// return 400 on this backend. Request images + variants; pricing uses region
+// context elsewhere when available.
+const PRODUCT_FIELDS = '+thumbnail,+images.url,+images.alt,+images.rank,*variants';
+
 const productsRepo = (): ProductRepository => ({
   async list(filter?: ProductFilter) {
-    const data = await medusaFetch<{ products: MedusaStoreProduct[] }>('/store/products?limit=100');
+    const data = await medusaFetch<{ products: MedusaStoreProduct[] }>(
+      `/store/products?limit=100&fields=${encodeURIComponent(PRODUCT_FIELDS)}`
+    );
     let products = (data.products ?? []).map((p, i) => mapMedusaProduct(p, i + 1));
     if (filter?.status) products = products.filter((p) => p.status === filter.status);
     if (filter?.slugs?.length) {
@@ -122,14 +129,16 @@ const productsRepo = (): ProductRepository => ({
   },
   async bySlug(slug: string) {
     const data = await medusaFetch<{ products: MedusaStoreProduct[] }>(
-      `/store/products?handle=${encodeURIComponent(slug)}&limit=1`
+      `/store/products?handle=${encodeURIComponent(slug)}&limit=1&fields=${encodeURIComponent(PRODUCT_FIELDS)}`
     );
     const raw = data.products?.[0];
     return raw ? mapMedusaProduct(raw, 1) : null;
   },
   async byId(id) {
     try {
-      const data = await medusaFetch<{ product: MedusaStoreProduct }>(`/store/products/${id}`);
+      const data = await medusaFetch<{ product: MedusaStoreProduct }>(
+        `/store/products/${id}?fields=${encodeURIComponent(PRODUCT_FIELDS)}`
+      );
       return data.product ? mapMedusaProduct(data.product, 1) : null;
     } catch (e) {
       if (e instanceof AppError && e.code === 'NOT_FOUND') return null;

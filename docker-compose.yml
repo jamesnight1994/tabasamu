@@ -80,12 +80,10 @@ services:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
       NEXT_PUBLIC_APP_ENV: ${NEXT_PUBLIC_APP_ENV:-development}
-      # mock = design / offline; http = Medusa-backed (requires key + seed)
-      NEXT_PUBLIC_ADAPTERS: ${NEXT_PUBLIC_ADAPTERS:-mock}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:9000}
-      NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:-}
+      # Prefer .env.local via env_file for ADAPTERS / API URL / publishable key.
+      # Do not set NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY here — an empty ${VAR:-}
+      # would override env_file and break Medusa Store API calls.
       MEDUSA_BACKEND_URL: ${MEDUSA_BACKEND_URL:-http://medusa:9000}
-      MEDUSA_PUBLISHABLE_KEY: ${MEDUSA_PUBLISHABLE_KEY:-}
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     volumes:

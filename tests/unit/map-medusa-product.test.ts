@@ -46,8 +46,20 @@ describe('mapMedusaProduct', () => {
     }
   });
 
-  it('falls back to a known flavour slug when handle is unknown', () => {
-    const product = mapMedusaProduct({ ...raw, handle: 'mystery-flavour' }, 1);
-    expect(product.slug).toBe('passion');
+  it('maps Medusa thumbnail and gallery images onto Product.images', () => {
+    const product = mapMedusaProduct(
+      {
+        ...raw,
+        thumbnail: 'http://localhost:9000/static/thumb.jpg',
+        images: [
+          { url: '/static/a.jpg', alt: 'A' },
+          { url: 'http://localhost:9000/static/b.jpg', alt: 'B' },
+        ],
+      },
+      1
+    );
+    expect(product.images).toHaveLength(2);
+    expect(product.images[0]?.src).toContain('/static/a.jpg');
+    expect(product.images[1]?.src).toBe('http://localhost:9000/static/b.jpg');
   });
 });

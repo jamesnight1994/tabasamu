@@ -28,6 +28,7 @@
  */
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Button } from '../primitives/Button';
 import { SlotImage } from '../editorial/SlotImage';
@@ -60,6 +61,7 @@ export function ProductCard({
   priority = false,
 }: ProductCardProps) {
   const slot = PRODUCT_SLOTS[product.slug];
+  const medusaImage = product.images[0] ?? null;
 
   /**
    * ⚠ VARIANT SELECTOR — shown only when there is a real choice.
@@ -111,7 +113,19 @@ export function ProductCard({
         {/* The IMAGE scales 2% on hover; the card does not. Clipped by the
             parent, so it reads as a gentle push-in rather than a bounce. */}
         <div className="motion-safe:transition-transform motion-safe:duration-[--duration-slow] motion-safe:ease-[--ease-standard] motion-safe:group-hover:scale-[1.02]">
-          <SlotImage slot={slot} priority={priority} rounded={false} />
+          {medusaImage ? (
+            <Image
+              src={medusaImage.src}
+              alt={medusaImage.alt}
+              width={medusaImage.width}
+              height={medusaImage.height}
+              sizes="(max-width: 768px) 50vw, 25vw"
+              priority={priority}
+              className="aspect-[4/5] w-full object-cover"
+            />
+          ) : (
+            <SlotImage slot={slot} priority={priority} rounded={false} />
+          )}
         </div>
       </Link>
 

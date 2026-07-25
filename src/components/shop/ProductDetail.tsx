@@ -374,6 +374,58 @@ export function ProductDetail({
 function Gallery({ product }: { product: Product }) {
   const slot = PRODUCT_SLOTS[product.slug];
   const [active, setActive] = useState(0);
+  const hasProductImages = product.images.length > 0;
+
+  // Prefer catalogue images (Medusa uploads / mock fixtures) over editorial slots.
+  if (hasProductImages) {
+    const images = product.images;
+    const current = images[active] ?? images[0];
+
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="overflow-hidden rounded-[--radius-md]">
+          <Image
+            src={current.src}
+            alt={current.alt}
+            width={current.width}
+            height={current.height}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority
+            className="w-full object-cover"
+          />
+        </div>
+
+        {images.length > 1 && (
+          <ul className="flex gap-2">
+            {images.map((img, i) => (
+              <li key={img.src}>
+                <button
+                  type="button"
+                  onClick={() => setActive(i)}
+                  aria-label={`View image ${i + 1} of ${images.length}`}
+                  aria-current={i === active ? 'true' : undefined}
+                  className={cn(
+                    'block size-20 overflow-hidden rounded-[--radius-sm] border-2',
+                    'focus-visible:outline-2 focus-visible:outline-[--color-focus] focus-visible:outline-offset-2',
+                    'transition-colors duration-[--duration-fast]',
+                    i === active ? 'border-[--color-action]' : 'border-transparent'
+                  )}
+                >
+                  <Image
+                    src={img.src}
+                    alt=""
+                    width={160}
+                    height={160}
+                    className="size-full object-cover"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
 
   // ⛔ No photograph → the honest awaiting-asset panel, not a broken image.
   if (!slot.supplied) {
@@ -387,58 +439,9 @@ function Gallery({ product }: { product: Product }) {
     );
   }
 
-  const images = product.images;
-  const current = images[active] ?? images[0];
-
   return (
     <div className="flex flex-col gap-3">
-      <div className="overflow-hidden rounded-[--radius-md]">
-        <Image
-          src={current.src}
-          alt={current.alt}
-          width={current.width}
-          height={current.height}
-          sizes="(max-width: 768px) 100vw, 50vw"
-          priority
-          className="w-full object-cover"
-        />
-      </div>
-
-      {images.length > 1 && (
-        <ul className="flex gap-2">
-          {images.map((img, i) => (
-            <li key={img.src}>
-              <button
-                type="button"
-                onClick={() => setActive(i)}
-                aria-label={`View image ${i + 1} of ${images.length}`}
-                aria-current={i === active ? 'true' : undefined}
-                className={cn(
-                  'block size-20 overflow-hidden rounded-[--radius-sm] border-2',
-                  'focus-visible:outline-2 focus-visible:outline-[--color-focus] focus-visible:outline-offset-2',
-                  'transition-colors duration-[--duration-fast]',
-                  i === active ? 'border-[--color-action]' : 'border-transparent'
-                )}
-              >
-                <Image
-                  src={img.src}
-                  alt=""
-                  width={160}
-                  height={160}
-                  className="size-full object-cover"
-                />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/*
-        ⚠ A RECORDED DEFECT ON A SUPPLIED IMAGE.
-          Today this fires for Pineapple, whose label reads "Gluten Free" while
-          the site (and every other bottle) says "Caffeine Free". The image is
-          used per client decision — but the discrepancy is stated, not buried.
-      */}
+      <SlotImage slot={slot} priority />
       {slot.blockedBy && (
         <p className="spec-mono text-[length:--text-micro] text-[--color-ink-subtle]">
           ⚠ {slot.blockedBy}

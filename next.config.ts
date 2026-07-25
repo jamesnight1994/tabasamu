@@ -63,12 +63,13 @@ const contentSecurityPolicy = [
   `script-src 'self' 'unsafe-inline'`,
   // Inline styles = design-system swatches + Next.js injected styles.
   `style-src 'self' 'unsafe-inline'`,
-  // All imagery is local /public today; `data:` covers tiny inlined assets.
-  `img-src 'self' data:`,
+  // All imagery is local /public today; Medusa product media is served from the API host.
+  // `data:` covers tiny inlined assets. `http://localhost:9000` / `127.0.0.1:9000` for local Medusa.
+  `img-src 'self' data: http://localhost:9000 http://127.0.0.1:9000`,
   // Self-hosted woff2 (Fraunces, DM Sans) — no Google Fonts network fetch.
   `font-src 'self'`,
-  // XHR/fetch: self only until a backend origin exists (then add it here).
-  `connect-src 'self'`,
+  // XHR/fetch: self + local Medusa Store API when adapters=http.
+  `connect-src 'self' http://localhost:9000 http://127.0.0.1:9000`,
   // This site is never legitimately framed.
   `frame-ancestors 'none'`,
   // Constrain the <base> element (defends against base-tag injection).
@@ -121,6 +122,16 @@ const nextConfig: NextConfig = {
 
   // [S-2] Remove the `X-Powered-By: Next.js` framework-fingerprint banner.
   poweredByHeader: false,
+
+  images: {
+    // localhost/127.0.0.1: browser / host-side Medusa. `medusa`: Docker Compose
+    // service name used after server-side URL rewrite for the Image optimizer.
+    remotePatterns: [
+      { protocol: "http", hostname: "localhost", port: "9000", pathname: "/**" },
+      { protocol: "http", hostname: "127.0.0.1", port: "9000", pathname: "/**" },
+      { protocol: "http", hostname: "medusa", port: "9000", pathname: "/**" },
+    ],
+  },
 
   async headers() {
     return [
