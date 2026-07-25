@@ -49,6 +49,10 @@ const serverSchema = z.object({
   API_SERVICE_TOKEN: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   SESSION_SECRET: z.string().optional(),
+  /** Prefer for server-side fetches inside Docker (e.g. http://medusa:9000). */
+  MEDUSA_BACKEND_URL: z.string().optional(),
+  /** Server fallback; prefer NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY in the browser. */
+  MEDUSA_PUBLISHABLE_KEY: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

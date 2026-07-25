@@ -9,57 +9,59 @@ into one runbook.
 ## 1. Prerequisites
 
 - **Node.js 20+** (project uses Next.js 15.5 / React 19).
-- **npm** (a `package-lock.json` is committed; use `npm ci` for reproducible installs).
+- **Yarn 4** via Corepack (`packageManager: yarn@4.10.3`; a `yarn.lock` is committed).
 
 ## 2. Local setup
 
 ```bash
-npm ci                       # exact locked install
+corepack enable
+yarn install                 # exact locked install
 cp .env.example .env.local   # all placeholders; safe defaults for local
-npm run dev                  # http://localhost:3000 (mock adapters)
+yarn dev                     # http://localhost:3000 (mock adapters)
 ```
 
 Local runs on **mock adapters** — no backend, no network, fully functional
-storefront/account/admin against in-memory data.
+storefront/account against in-memory data.
 
 ## 3. Development commands
 
 | Command | Does |
 |---|---|
-| `npm run dev` | Dev server (Turbopack), hot reload |
-| `npm run build` | Production build |
-| `npm start` | Serve the production build |
-| `npm run lint` | ESLint + import-boundary rules |
-| `npm run typecheck` | `tsc --noEmit` (strict) |
-| `npm run lint:brand` | Brand-voice + palette gate |
-| `npm run lint:contrast` | WCAG 2.2 AA contrast gate |
-| `npm run lint:secrets` | Scans the built bundle for leaked secrets |
-| `npm test` | Vitest unit + flow suite |
-| `npm run test:coverage` | Tests with coverage |
-| `npm run test:e2e` | Playwright (needs a browser download; see note) |
-| `npm run verify` | lint + typecheck + contrast + brand + tests (the gate bundle) |
+| `yarn dev` | Dev server (Turbopack), hot reload |
+| `yarn build` | Production build |
+| `yarn start` | Serve the production build |
+| `yarn lint` | ESLint + import-boundary rules |
+| `yarn typecheck` | `tsc --noEmit` (strict) |
+| `yarn lint:brand` | Brand-voice + palette gate |
+| `yarn lint:contrast` | WCAG 2.2 AA contrast gate |
+| `yarn lint:secrets` | Scans the built bundle for leaked secrets |
+| `yarn test` | Vitest unit + flow suite |
+| `yarn test:coverage` | Tests with coverage |
+| `yarn test:e2e` | Playwright (needs a browser download; see note) |
+| `yarn verify` | lint + typecheck + contrast + brand + tests (the gate bundle) |
+| `yarn medusa …` | Medusa CLI (proxies into `commerce/`) |
 
 > **Playwright note:** the browser binary download is egress-restricted in some
 > sandboxes; `test:e2e` needs a machine that can fetch the browser. The unit/flow
-> suite (`npm test`) has no such dependency.
+> suite (`yarn test`) has no such dependency.
 
 ## 4. Build guide
 
 ```bash
-npm run build     # produces .next/ ; 51 routes prerendered/SSG
-npm start         # or deploy the build to your platform
+yarn build     # produces .next/ ; 51 routes prerendered/SSG
+yarn start     # or deploy the build to your platform
 ```
 
 A clean build is a release gate. Confirm it before every deploy.
 
 ## 5. Testing guide
 
-- **Unit + flow:** `npm test` — 449 assertions across domain, adapters, and
+- **Unit + flow:** `yarn test` — 449 assertions across domain, adapters, and
   full user flows (cart → checkout, account arc, admin workflows).
 - **The handover gate (G2):** with a real backend, set
   `NEXT_PUBLIC_ADAPTERS=http` and run the flow suite; it must pass unchanged
   above the adapter layer. That is the acceptance test for the backend.
-- **Brand/contrast/secrets:** run as part of `npm run verify`; all three must
+- **Brand/contrast/secrets:** run as part of `yarn verify`; all three must
   pass to ship.
 
 ## 6. Deployment guide
@@ -71,7 +73,7 @@ host or Next-compatible platform (Vercel or a container).
    `NEXT_PUBLIC_APP_ENV=production` (enables prod robots, HSTS, https-upgrade),
    `NEXT_PUBLIC_ADAPTERS=http` and `NEXT_PUBLIC_API_URL` once the backend exists.
 2. Put all server-only secrets in the platform's **secret store**, never the repo.
-3. `npm ci && npm run build` in CI; deploy the immutable build.
+3. `yarn install --immutable && yarn build` in CI; deploy the immutable build.
 4. **Before enabling any third-party origin** (analytics, payment SDK), add it to
    the CSP in `next.config.ts`, and migrate `script-src` to a **nonce** model.
 5. Smoke-test the deployed URL: routes 200, unknown → 404, security headers
@@ -124,8 +126,8 @@ policy is a backend/infra concern:
 
 ## 11. Release process
 
-1. `npm run verify` green locally and in CI.
-2. `npm run build` clean.
+1. `yarn verify` green locally and in CI.
+2. `yarn build` clean.
 3. Confirm no new secret in the bundle (`lint:secrets`).
 4. Tag the release; deploy the immutable build.
 5. Smoke-test the deployed URL (§6.5).
@@ -149,7 +151,7 @@ change, correct `next.config.ts` and redeploy forward instead. Backend rollbacks
 ## 13. Maintenance guide
 
 - **Dependencies:** keep Next.js/React and the Radix set patched; re-run
-  `npm run verify` + `npm run build` after any bump.
+  `yarn verify` + `yarn build` after any bump.
 - **Boundary lint:** the `eslint-plugin-boundaries` config emits v6→v7 deprecation
   *warnings* (non-blocking). Migrating `rules` → `policies` and legacy selectors
   is a low-priority tidy-up (see doc 68).

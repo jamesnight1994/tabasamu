@@ -16,13 +16,10 @@ import { AppError } from '../../src/lib/errors';
  *    HttpAdapters, with ZERO changes above the adapter layer. If it passes, the
  *    handover is clean. If it fails, backend logic has leaked upward."
  *
- * This file is that test. Today `HttpAdapters` is an unimplemented stub, so the
- * assertion we CAN make is the structural one: both adapter sets satisfy the
- * same `Adapters` interface, expose the same surface, and are substitutable
- * without any consumer knowing which one it holds.
- *
- * When the backend lands, the `describe.each` below runs the SAME flow suite
- * against both — and that is the moment the handover is proven.
+ * This file is that test. Medusa-backed HTTP adapters implement the MVP ports;
+ * deferred ports (bundles, subscriptions, …) still throw loudly. The flow suite
+ * runs against `mock` today; uncomment the `http` entry at Gate G2 once a live
+ * Medusa instance is available in CI.
  */
 
 /* ------------------------------------------------------------------ *
@@ -63,11 +60,18 @@ describe('G2 — adapter substitutability', () => {
     }
   });
 
-  it('the http adapter fails LOUDLY rather than returning a plausible fake', () => {
-    // ⚠ A silently-fake HTTP adapter is worse than an absent one: it would let
-    //   this very gate pass against nothing. [NN-04]
+  it('deferred http ports fail LOUDLY rather than returning a plausible fake', () => {
+    // ⚠ Implemented Medusa ports (products, carts, …) talk to the API.
+    //   Deferred ports must still throw — a silently-fake HTTP adapter is
+    //   worse than an absent one. [NN-04]
     const http = createHttpAdapters();
-    expect(() => http.products.list()).toThrow(AppError);
+    expect(() => http.bundles.list()).toThrow(AppError);
+    expect(() => http.subscriptions.list()).toThrow(AppError);
+  });
+
+  it('Medusa catalogue rejects when the publishable key is missing', async () => {
+    const http = createHttpAdapters();
+    await expect(http.products.list()).rejects.toThrow(AppError);
   });
 });
 

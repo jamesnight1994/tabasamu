@@ -13,14 +13,14 @@
  *   architecture, not the other way round.
  *
  * ⚠ MOBILE LOGO: the full logo has a 120px digital minimum (Brand Book §02).
- *   At 360px, a 120px full logo plus a menu control does not fit with adequate
- *   touch targets. So on mobile the header uses the approved coloured MONOGRAM
- *   (40px minimum) on the cream band, switching to the approved full logo from
- *   the `md` breakpoint upward.
+ *   At 360px, a 120px full logo plus a cart control plus a menu control does
+ *   not fit with adequate touch targets. So on mobile the header uses the
+ *   approved coloured MONOGRAM (40px minimum) on the cream band, switching to
+ *   the approved full logo from the `md` breakpoint upward.
  *
  * ⚠ N-02/N-03 — text-only navigation. No icon-only nav items. An icon without
  *   a label is a guess, and this audience is not a Silicon Valley power user.
- *   The menu control carries visible text.
+ *   The cart and menu controls carry visible text.
  */
 
 import { useState } from 'react';
@@ -38,7 +38,12 @@ export const PRIMARY_NAV = [
   { href: '/stockists', label: 'Stockists', flag: 'stockists' as const },
 ] as const;
 
-export function Header() {
+export interface HeaderProps {
+  cartCount?: number;
+  onCartClick?: () => void;
+}
+
+export function Header({ cartCount = 0, onCartClick }: HeaderProps) {
   const [navOpen, setNavOpen] = useState(false);
 
   const visibleNav = PRIMARY_NAV.filter((item) => !('flag' in item) || isEnabled(item.flag));
@@ -110,14 +115,33 @@ export function Header() {
             </ul>
           </nav>
 
-          {/* --- mobile menu --- */}
-          <div className="relative z-10 ml-auto flex shrink-0 items-center gap-1 lg:hidden">
+          {/* --- controls --- */}
+          <div className="relative z-10 ml-auto flex shrink-0 items-center gap-1">
+            <button type="button" onClick={onCartClick} className={control}>
+              Cart
+              {cartCount > 0 && (
+                <span
+                  className={cn(
+                    'grid min-w-5 place-items-center rounded-[--radius-pill] px-1.5',
+                    'bg-[--color-action] font-mono text-[length:--text-micro] text-[--color-action-fg]'
+                  )}
+                >
+                  {cartCount}
+                </span>
+              )}
+              <span className="sr-only">
+                {cartCount === 0
+                  ? ', empty'
+                  : `, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
+              </span>
+            </button>
+
             <button
               type="button"
               onClick={() => setNavOpen(true)}
               aria-expanded={navOpen}
               aria-controls="mobile-nav"
-              className={control}
+              className={cn(control, 'lg:hidden')}
             >
               Menu
             </button>

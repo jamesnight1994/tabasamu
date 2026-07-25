@@ -2,6 +2,7 @@
   "name": "tabasamu",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "yarn@4.10.3",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
@@ -15,7 +16,15 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "verify": "npm run lint && npm run typecheck && npm run lint:contrast && npm run lint:brand && npm run test"
+    "verify": "yarn lint && yarn typecheck && yarn lint:contrast && yarn lint:brand && yarn test",
+    "medusa": "yarn --cwd commerce medusa",
+    "commerce:dev": "yarn --cwd commerce backend:dev",
+    "commerce:seed": "yarn --cwd commerce backend:seed",
+    "commerce:user": "yarn --cwd commerce backend:user",
+    "commerce:migrate": "yarn --cwd commerce backend:migrate",
+    "docker": "./scripts/docker-yarn.sh",
+    "docker:medusa": "./scripts/docker-yarn.sh -s medusa",
+    "docker:app": "./scripts/docker-yarn.sh -s app"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

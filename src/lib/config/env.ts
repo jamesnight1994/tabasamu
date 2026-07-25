@@ -22,6 +22,8 @@ const clientSchema = z.object({
   /** 'mock' until the backend exists. Flipping this to 'http' IS the G2 handover. */
   NEXT_PUBLIC_ADAPTERS: z.enum(['mock', 'http']).default('mock'),
   NEXT_PUBLIC_API_URL: z.string().default(''),
+  /** Medusa publishable key — safe for the browser (Store API). */
+  NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: z.string().default(''),
   NEXT_PUBLIC_ANALYTICS_ENABLED: z.enum(['true', 'false']).default('false'),
   NEXT_PUBLIC_LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error', 'silent']).default('info'),
 });
@@ -37,6 +39,7 @@ export const clientEnv = (): ClientEnv => {
     NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
     NEXT_PUBLIC_ADAPTERS: process.env.NEXT_PUBLIC_ADAPTERS,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
     NEXT_PUBLIC_ANALYTICS_ENABLED: process.env.NEXT_PUBLIC_ANALYTICS_ENABLED,
     NEXT_PUBLIC_LOG_LEVEL: process.env.NEXT_PUBLIC_LOG_LEVEL,
   });

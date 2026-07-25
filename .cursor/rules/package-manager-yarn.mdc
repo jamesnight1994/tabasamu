@@ -1,0 +1,30 @@
+---
+description: Prefer Yarn for all package management and script running
+alwaysApply: true
+---
+
+# Package manager: Yarn only
+
+Use **Yarn** for installs, adds, removes, and script execution in this project. Do not use npm or npx unless a tool has no Yarn equivalent and you state why.
+
+## Commands
+
+| Instead of | Use |
+|---|---|
+| `npm install` / `npm ci` | `yarn` / `yarn install` |
+| `npm install <pkg>` | `yarn add <pkg>` |
+| `npm install -D <pkg>` | `yarn add -D <pkg>` |
+| `npm uninstall <pkg>` | `yarn remove <pkg>` |
+| `npm run <script>` | `yarn <script>` |
+| `npx <pkg>` | `yarn dlx <pkg>` |
+| `npx create-<tool>` | `yarn create <tool>` or `yarn dlx create-<tool>` |
+
+## Scaffolding
+
+When a CLI offers a package-manager flag (e.g. `create-medusa-app`), pass `--use-yarn`.
+
+## Lockfiles
+
+- Prefer and commit `yarn.lock` (storefront root and `commerce/`).
+- Do not create or commit `package-lock.json`.
+- Do not run `npm install` in a Yarn project if it would regenerate a lockfile conflict.

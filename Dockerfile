@@ -6,20 +6,21 @@ ARG NODE_VERSION=20
 FROM node:${NODE_VERSION}-alpine AS base
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
+RUN corepack enable && corepack prepare yarn@4.10.3 --activate
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # ---------- dependencies ----------
 FROM base AS deps
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json yarn.lock .yarnrc.yml ./
+RUN yarn install --immutable
 
 # ---------- local development ----------
 FROM base AS development
 ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
-COPY package.json package-lock.json ./
+COPY package.json yarn.lock .yarnrc.yml ./
 EXPOSE 3000
-CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0", "--port", "3000"]
+CMD ["yarn", "dev", "--hostname", "0.0.0.0", "--port", "3000"]
 
 # ---------- production build ----------
 FROM base AS builder
@@ -42,7 +43,7 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     NEXT_PUBLIC_ANALYTICS_ENABLED=$NEXT_PUBLIC_ANALYTICS_ENABLED \
     NEXT_PUBLIC_LOG_LEVEL=$NEXT_PUBLIC_LOG_LEVEL
 
-RUN npm run build
+RUN yarn build
 
 # ---------- production runtime ----------
 FROM base AS runner

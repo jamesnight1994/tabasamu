@@ -14,16 +14,17 @@ clean, all 7 quality gates passing, no secrets in the bundle.
 ## Quick start
 
 ```bash
-npm ci                       # exact locked install (Node 20+)
+corepack enable              # Yarn 4 via packageManager field
+yarn install                 # exact locked install (Node 20+)
 cp .env.example .env.local   # all placeholders; safe for local
-npm run dev                  # http://localhost:3000 (mock adapters)
+yarn dev                     # http://localhost:3000 (mock adapters)
 ```
 
 ## Verification
 
 ```bash
-npm run verify   # lint + typecheck + contrast + brand + tests
-npm run build    # production build (51 routes)
+yarn verify   # lint + typecheck + contrast + brand + tests
+yarn build    # production build (51 routes)
 ```
 
 All green is the state to preserve.
@@ -50,12 +51,57 @@ Zod 4 · Radix UI · Vitest.
 
 | Command | Does |
 |---|---|
-| `npm run dev` | Dev server |
-| `npm run build` / `npm start` | Production build / serve |
-| `npm run lint` · `npm run typecheck` | Static checks + import boundaries |
-| `npm run lint:brand` · `lint:contrast` · `lint:secrets` | Brand, WCAG AA, secret-scan gates |
-| `npm test` · `test:coverage` · `test:e2e` | Vitest suite (449) · coverage · Playwright |
-| `npm run verify` | The gate bundle |
+| `yarn dev` | Dev server |
+| `yarn build` / `yarn start` | Production build / serve |
+| `yarn lint` · `yarn typecheck` | Static checks + import boundaries |
+| `yarn lint:brand` · `lint:contrast` · `lint:secrets` | Brand, WCAG AA, secret-scan gates |
+| `yarn test` · `test:coverage` · `test:e2e` | Vitest suite · coverage · Playwright |
+| `yarn verify` | The gate bundle |
+| `yarn medusa …` | Medusa CLI on the host (proxies into `commerce/`) |
+| `yarn docker …` | Run a package.json script inside Docker Compose |
+
+## Commerce (Medusa v2)
+
+Medusa lives under [`commerce/`](commerce/) as a **Yarn 4** workspace (`apps/backend`). The storefront root is Yarn 4 as well (`packageManager: yarn@4.10.3`).
+
+```bash
+# Backend deps + seed (from commerce/)
+cd commerce
+yarn install
+cp apps/backend/.env.example apps/backend/.env   # DATABASE_URL, REDIS_URL, secrets
+yarn backend:dev                                  # http://localhost:9000 — Admin UI: /app
+yarn backend:seed                                 # Kenya / KES, six flavours, Nairobi demo shipping
+yarn medusa user -e admin@tabasamu.local -p '…'   # create Admin login (or yarn backend:user …)
+
+# Same Medusa CLI from the repo root (host Yarn → commerce):
+yarn medusa user -e admin@tabasamu.local -p '…'
+
+# Preferred: run package.json scripts inside Docker (no host Medusa/Postgres):
+docker compose up -d --build
+yarn docker medusa user -e admin@tabasamu.local -p '…'
+yarn docker commerce:seed
+yarn docker -s app typecheck
+# Copy the logged publishable key into root .env.local as NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+```
+
+**Adapter switch (Gate G2):**
+
+| `NEXT_PUBLIC_ADAPTERS` | Behaviour |
+|---|---|
+| `mock` (default) | In-memory fixtures — design + CI without Medusa |
+| `http` | Medusa Store API via `src/adapters/http` (`NEXT_PUBLIC_API_URL`, publishable key) |
+
+**Docker smoke** (Postgres + Redis + Medusa + Next):
+
+```bash
+cp .env.example .env.local
+cp commerce/apps/backend/.env.example commerce/apps/backend/.env
+docker compose up --build
+# Storefront http://localhost:3000 · Medusa http://localhost:9000 (/app for Admin)
+# After seed, set NEXT_PUBLIC_ADAPTERS=http and NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY, recreate `app`.
+```
+
+Storefront verify stays at the repo root: `yarn typecheck` · `yarn test` (mock adapters).
 
 ## Brand logo assets
 
@@ -68,7 +114,7 @@ in `public/brand/_reference/`.
 Render via the `Logo` component only — `variant="full" | "monogram"`,
 `tone="light" | "dark"`. The full logo is light-surface only; dark surfaces use
 the white monogram (there is no reversed full lockup). The brand lint
-(`npm run lint:brand`) fails the build on obsolete assets, unsupported
+(`yarn lint:brand`) fails the build on obsolete assets, unsupported
 variants/tone, CSS filters/crops/rotation on logos, and a full logo on a dark
 surface. See **`docs/logo-remediation/HANDOVER.md`** for how to add new
 placements.

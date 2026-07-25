@@ -1,0 +1,9 @@
+# Exclude host deps from Medusa image build context where possible
+**/node_modules
+**/.medusa
+.git
+*.md
+**/.env
+**/.env.*
+!**/.env.example
+**/.env.template
