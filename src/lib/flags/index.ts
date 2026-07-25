@@ -39,7 +39,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   stockists: false,
 };
 
-/** The decision that blocks each flag — surfaced in the admin and in docs. */
+/** The decision that blocks each flag — surfaced in docs. */
 export const FLAG_BLOCKERS: Readonly<Record<keyof FeatureFlags, string>> = {
   subscriptions: 'D-09',
   buildABox: 'D-06',

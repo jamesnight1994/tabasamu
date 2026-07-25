@@ -7,8 +7,8 @@
  * sitemap that lists a page the footer removed (or omits one it added) is a
  * classic silent SEO regression.
  *
- * ⚠ PRIVATE ROUTES ARE DELIBERATELY ABSENT. Account, cart, checkout, admin and
- *   the auth flows are noindex and are NOT enumerated here. `robots.ts`
+ * ⚠ PRIVATE ROUTES ARE DELIBERATELY ABSENT. Account, cart, checkout and the
+ *   auth flows are noindex and are NOT enumerated here. `robots.ts`
  *   disallows them independently.
  *
  * ⚠ `changeFrequency` and `priority` are HINTS, not promises. Google largely

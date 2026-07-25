@@ -7,7 +7,7 @@ import { FLAVOUR_SLUGS } from '../domain/catalogue';
  * SITEMAP  (Phase 8 · §2)
  *
  * Enumerates ONLY public, indexable URLs — the same set `robots.ts` allows and
- * the footer links to. Private surfaces (account, cart, checkout, admin, auth)
+ * the footer links to. Private surfaces (account, cart, checkout, auth)
  * are absent by construction: they are not in `PUBLIC_ROUTES`.
  *
  * ⚠ Product URLs come from the real catalogue slugs, not a hand-kept list, so a

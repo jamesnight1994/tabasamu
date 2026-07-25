@@ -2,7 +2,7 @@
  * <NoIndex>  (Phase 8 · §2, §5)
  *
  * Emits `<meta name="robots" content="noindex, nofollow">` for a private
- * surface — account, cart, checkout, admin, auth.
+ * surface — account, cart, checkout, auth.
  *
  * ⚠ WHY A COMPONENT AND NOT `export const metadata`. These layouts and pages are
  *   `'use client'` (they hold a session, a cart, or an idempotency-guarded
