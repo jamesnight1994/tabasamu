@@ -13,14 +13,14 @@
  *   architecture, not the other way round.
  *
  * ⚠ MOBILE LOGO: the full logo has a 120px digital minimum (Brand Book §02).
- *   At 360px, a 120px full logo plus a cart control plus a menu control does
- *   not fit with adequate touch targets. So on mobile the header uses the
- *   approved coloured MONOGRAM (40px minimum) on the cream band, switching to
- *   the approved full logo from the `md` breakpoint upward.
+ *   At 360px, a 120px full logo plus a menu control does not fit with adequate
+ *   touch targets. So on mobile the header uses the approved coloured MONOGRAM
+ *   (40px minimum) on the cream band, switching to the approved full logo from
+ *   the `md` breakpoint upward.
  *
  * ⚠ N-02/N-03 — text-only navigation. No icon-only nav items. An icon without
  *   a label is a guess, and this audience is not a Silicon Valley power user.
- *   The cart and menu controls carry visible text.
+ *   The menu control carries visible text.
  */
 
 import { useState } from 'react';
@@ -30,7 +30,7 @@ import { Drawer } from '../primitives/Overlay';
 import { cn } from '../../lib/utils/cn';
 import { isEnabled } from '../../lib/flags';
 
-/** Four primary items. Wholesale, Corporate, FAQs, Contact live in the footer. */
+/** Primary browse items. Wholesale, Corporate, FAQs, Contact live in the footer. */
 export const PRIMARY_NAV = [
   { href: '/shop', label: 'Shop' },
   { href: '/our-story', label: 'Our Story' },
@@ -38,12 +38,7 @@ export const PRIMARY_NAV = [
   { href: '/stockists', label: 'Stockists', flag: 'stockists' as const },
 ] as const;
 
-export interface HeaderProps {
-  cartCount?: number;
-  onCartClick?: () => void;
-}
-
-export function Header({ cartCount = 0, onCartClick }: HeaderProps) {
+export function Header() {
   const [navOpen, setNavOpen] = useState(false);
 
   const visibleNav = PRIMARY_NAV.filter((item) => !('flag' in item) || isEnabled(item.flag));
@@ -76,7 +71,7 @@ export function Header({ cartCount = 0, onCartClick }: HeaderProps) {
       >
         <div
           className={cn(
-            'mx-auto flex items-center justify-between gap-4',
+            'relative mx-auto flex items-center',
             'h-[--header-height] max-w-[--container-max]',
             'px-4 md:px-8'
           )}
@@ -85,7 +80,7 @@ export function Header({ cartCount = 0, onCartClick }: HeaderProps) {
           <Link
             href="/"
             aria-label="Tabasamu Sips — home"
-            className="shrink-0 rounded-[--radius-sm] focus-visible:outline-2 focus-visible:outline-[--color-focus] focus-visible:outline-offset-4"
+            className="relative z-10 shrink-0 rounded-[--radius-sm] focus-visible:outline-2 focus-visible:outline-[--color-focus] focus-visible:outline-offset-4"
           >
             {/* Monogram below md (40px min); full logo from md (120px min).
                 The wrapping <Link> already gives ≥44px touch target and the
@@ -99,8 +94,11 @@ export function Header({ cartCount = 0, onCartClick }: HeaderProps) {
             </span>
           </Link>
 
-          {/* --- desktop nav --- */}
-          <nav aria-label="Primary" className="hidden lg:block">
+          {/* --- desktop nav — optically centered in the header band --- */}
+          <nav
+            aria-label="Primary"
+            className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block"
+          >
             <ul className="flex items-center gap-1">
               {visibleNav.map((item) => (
                 <li key={item.href}>
@@ -112,38 +110,14 @@ export function Header({ cartCount = 0, onCartClick }: HeaderProps) {
             </ul>
           </nav>
 
-          {/* --- controls --- */}
-          <div className="flex shrink-0 items-center gap-1">
-            {/* Account — links to the self-service area. The account layout's
-                own guard decides sign-in vs dashboard, so this is a plain link. */}
-            <Link href="/account" className={control}>
-              Account
-            </Link>
-            <button type="button" onClick={onCartClick} className={control}>
-              Cart
-              {cartCount > 0 && (
-                <span
-                  className={cn(
-                    'grid min-w-5 place-items-center rounded-[--radius-pill] px-1.5',
-                    'bg-[--color-action] font-mono text-[length:--text-micro] text-[--color-action-fg]'
-                  )}
-                >
-                  {cartCount}
-                </span>
-              )}
-              <span className="sr-only">
-                {cartCount === 0
-                  ? ', empty'
-                  : `, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
-              </span>
-            </button>
-
+          {/* --- mobile menu --- */}
+          <div className="relative z-10 ml-auto flex shrink-0 items-center gap-1 lg:hidden">
             <button
               type="button"
               onClick={() => setNavOpen(true)}
               aria-expanded={navOpen}
               aria-controls="mobile-nav"
-              className={cn(control, 'lg:hidden')}
+              className={control}
             >
               Menu
             </button>
