@@ -10,7 +10,8 @@ services:
     region: oregon
     branch: dev
     autoDeploy: true
-    buildCommand: corepack enable && cd commerce && yarn install --immutable
+    # Install + compile during build so start only migrates and serves (avoids OOM on free plan).
+    buildCommand: set -euxo pipefail; corepack enable; corepack prepare yarn@4.10.3 --activate; cd commerce; yarn install --immutable --network-timeout 600000; cd apps/backend; yarn build
     startCommand: cd commerce/apps/backend && yarn start:prod
     healthCheckPath: /health
     envVars:
@@ -18,6 +19,9 @@ services:
         value: production
       - key: NODE_VERSION
         value: "20"
+      # Raise V8 heap for medusa build / start on small instances (default ~256MB OOMs).
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=460"
       - key: DATABASE_SSL
         value: "true"
       - key: JWT_SECRET
