@@ -10,7 +10,7 @@ services:
     region: oregon
     branch: dev
     autoDeploy: true
-    buildCommand: corepack enable && cd commerce && yarn install --immutable && yarn workspace @dtc/backend build
+    buildCommand: corepack enable && cd commerce && yarn install --immutable
     startCommand: cd commerce/apps/backend && yarn start:prod
     healthCheckPath: /health
     envVars:
