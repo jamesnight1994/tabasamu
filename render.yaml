@@ -10,22 +10,24 @@ services:
     region: oregon
     branch: dev
     autoDeploy: true
-    # Prefer this full buildCommand in the dashboard (build phase has a cleaner memory profile).
-    # Live service may still be install-only; start:prod then builds at boot.
-    # Free tier: set DISABLE_MEDUSA_ADMIN=true so medusa build fits in ~512MB.
+    # Ideal buildCommand (set in dashboard / Blueprint sync) — build phase has more RAM than start.
+    # Live dashboard may still be install-only; apps/backend postinstall then builds when RENDER=true.
+    # Start: migrate + serve from .medusa/server only (no medusa build — avoids free-tier OOM).
     # npm is intentional for .medusa/server: Medusa generates a standalone npm package.
+    # Free tier: DISABLE_MEDUSA_ADMIN=true keeps the compile smaller.
     buildCommand: set -euxo pipefail; corepack enable; corepack prepare yarn@4.10.3 --activate; cd commerce; yarn install --immutable --network-timeout 600000; cd apps/backend; yarn build; cd .medusa/server; npm install --omit=dev
-    startCommand: cd commerce/apps/backend && yarn start:prod
+    # Prefer .medusa/server start; yarn start:prod also cds there (works with older dashboard start).
+    startCommand: cd commerce/apps/backend/.medusa/server && npm run predeploy && npm run start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
         value: "20"
-      # Raise V8 heap for medusa build / start on small instances (default ~256MB OOMs).
+      # Raise V8 heap for medusa build on small instances (default ~256MB OOMs).
       - key: NODE_OPTIONS
         value: "--max-old-space-size=460"
-      # Single free-tier instance: shared server+worker; keep admin enabled.
+      # Single free-tier instance: shared server+worker; admin off to fit memory.
       - key: MEDUSA_WORKER_MODE
         value: shared
       - key: DISABLE_MEDUSA_ADMIN
