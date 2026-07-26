@@ -18,6 +18,7 @@
     "predeploy": "medusa db:migrate",
     "start": "medusa start",
     "start:prod": "cd .medusa/server && npm run predeploy && npm run start",
+    "postinstall": "node ./scripts/render-postinstall.mjs",
     "dev": "medusa develop",
     "lint": "medusa lint",
     "seed": "medusa exec ./src/migration-scripts/initial-data-seed.ts",

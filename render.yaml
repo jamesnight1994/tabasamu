@@ -11,10 +11,11 @@ services:
     branch: dev
     autoDeploy: true
     # Medusa production must run from .medusa/server (admin lives at public/admin/index.html).
-    # Install standalone deps at build time so start only migrates + serves.
+    # Prefer this full buildCommand in the dashboard. If the live Build Command is install-only,
+    # apps/backend postinstall runs medusa build when RENDER=true (see scripts/render-postinstall.mjs).
     # npm is intentional here: Medusa's generated .medusa/server is a standalone npm package.
     buildCommand: set -euxo pipefail; corepack enable; corepack prepare yarn@4.10.3 --activate; cd commerce; yarn install --immutable --network-timeout 600000; cd apps/backend; yarn build; cd .medusa/server; npm install --omit=dev
-    startCommand: cd commerce/apps/backend/.medusa/server && npm run predeploy && npm run start
+    startCommand: cd commerce/apps/backend && yarn start:prod
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
