@@ -15,8 +15,9 @@
   "scripts": {
     "medusa": "medusa",
     "build": "medusa build",
+    "predeploy": "medusa db:migrate",
     "start": "medusa start",
-    "start:prod": "medusa db:migrate && medusa start",
+    "start:prod": "cd .medusa/server && npm run predeploy && npm run start",
     "dev": "medusa develop",
     "lint": "medusa lint",
     "seed": "medusa exec ./src/migration-scripts/initial-data-seed.ts",

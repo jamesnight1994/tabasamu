@@ -25,5 +25,15 @@ module.exports = defineConfig({
       jwtSecret: process.env.JWT_SECRET || 'supersecret',
       cookieSecret: process.env.COOKIE_SECRET || 'supersecret',
     },
+    // Free/single instance: "shared". Split server/worker later via MEDUSA_WORKER_MODE.
+    workerMode: (process.env.MEDUSA_WORKER_MODE as
+      | 'shared'
+      | 'worker'
+      | 'server'
+      | undefined) || 'shared',
+  },
+  admin: {
+    disable: process.env.DISABLE_MEDUSA_ADMIN === 'true',
+    backendUrl: process.env.MEDUSA_BACKEND_URL,
   },
 })

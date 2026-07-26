@@ -10,9 +10,11 @@ services:
     region: oregon
     branch: dev
     autoDeploy: true
-    # Install + compile during build so start only migrates and serves (avoids OOM on free plan).
-    buildCommand: set -euxo pipefail; corepack enable; corepack prepare yarn@4.10.3 --activate; cd commerce; yarn install --immutable --network-timeout 600000; cd apps/backend; yarn build
-    startCommand: cd commerce/apps/backend && yarn start:prod
+    # Medusa production must run from .medusa/server (admin lives at public/admin/index.html).
+    # Install standalone deps at build time so start only migrates + serves.
+    # npm is intentional here: Medusa's generated .medusa/server is a standalone npm package.
+    buildCommand: set -euxo pipefail; corepack enable; corepack prepare yarn@4.10.3 --activate; cd commerce; yarn install --immutable --network-timeout 600000; cd apps/backend; yarn build; cd .medusa/server; npm install --omit=dev
+    startCommand: cd commerce/apps/backend/.medusa/server && npm run predeploy && npm run start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -22,6 +24,11 @@ services:
       # Raise V8 heap for medusa build / start on small instances (default ~256MB OOMs).
       - key: NODE_OPTIONS
         value: "--max-old-space-size=460"
+      # Single free-tier instance: shared server+worker; keep admin enabled.
+      - key: MEDUSA_WORKER_MODE
+        value: shared
+      - key: DISABLE_MEDUSA_ADMIN
+        value: "false"
       - key: DATABASE_SSL
         value: "true"
       - key: JWT_SECRET
