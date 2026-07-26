@@ -10,13 +10,11 @@ services:
     region: oregon
     branch: dev
     autoDeploy: true
-    # Ideal buildCommand (set in dashboard / Blueprint sync) — build phase has more RAM than start.
-    # Live dashboard may still be install-only; apps/backend postinstall then builds when RENDER=true.
-    # Start: migrate + serve from .medusa/server only (no medusa build — avoids free-tier OOM).
+    # Build phase: install + medusa build + .medusa/server deps (must be set in dashboard if Blueprint isn't synced).
+    # Start phase: migrate + serve only — no medusa build.
     # npm is intentional for .medusa/server: Medusa generates a standalone npm package.
-    # Free tier: DISABLE_MEDUSA_ADMIN=true keeps the compile smaller.
+    # Free tier may OOM on medusa build; upgrade plan or set DISABLE_MEDUSA_ADMIN=true.
     buildCommand: set -euxo pipefail; corepack enable; corepack prepare yarn@4.10.3 --activate; cd commerce; yarn install --immutable --network-timeout 600000; cd apps/backend; yarn build; cd .medusa/server; npm install --omit=dev
-    # Prefer .medusa/server start; yarn start:prod also cds there (works with older dashboard start).
     startCommand: cd commerce/apps/backend/.medusa/server && npm run predeploy && npm run start
     healthCheckPath: /health
     envVars:
