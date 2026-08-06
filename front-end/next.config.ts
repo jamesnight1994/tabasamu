@@ -166,6 +166,11 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // Repo root has its own yarn.lock (orchestrator). Pin Turbopack to this package.
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 export default nextConfig;

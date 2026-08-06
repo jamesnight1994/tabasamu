@@ -1,31 +1,29 @@
 # Render Blueprint — Medusa backend for Tabasamu (storefront stays on Vercel).
-# Postgres + Key Value may already exist; this documents the web service wiring.
-# Prefer linking DATABASE_URL / REDIS_URL from the dashboard if services pre-exist.
+# Deploy path: build image locally (scripts/deploy-medusa-image.sh) → GHCR → this image service.
+# Postgres + Key Value may already exist; link DATABASE_URL / REDIS_URL from the dashboard if needed.
+#
+# One-time dashboard setup:
+#   1. Add GHCR registry credential (name: ghcr-tabasamu) with a PAT that has read:packages
+#   2. Ensure this service is image-backed (not Node git build)
+#   3. Copy Deploy Hook into RENDER_DEPLOY_HOOK_URL for the local script
 
 services:
   - type: web
     name: tabasamu-medusa
-    runtime: node
+    runtime: image
     plan: free
     region: oregon
-    branch: dev
-    autoDeploy: true
-    # Build phase: install + medusa build + .medusa/server deps (must be set in dashboard if Blueprint isn't synced).
-    # Start phase: migrate + serve only — no medusa build.
-    # npm is intentional for .medusa/server: Medusa generates a standalone npm package.
-    # Free tier may OOM on medusa build; upgrade plan or set DISABLE_MEDUSA_ADMIN=true.
-    buildCommand: set -euxo pipefail; corepack enable; corepack prepare yarn@4.10.3 --activate; cd commerce; yarn install --immutable --network-timeout 600000; cd apps/backend; yarn build; cd .medusa/server; npm install --omit=dev
-    startCommand: cd commerce/apps/backend/.medusa/server && npm run predeploy && npm run start
+    image:
+      url: ghcr.io/jamesnight1994/tabasamu-medusa:dev
+      creds:
+        fromRegistryCreds:
+          name: ghcr-tabasamu
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
         value: "20"
-      # Raise V8 heap for medusa build on small instances (default ~256MB OOMs).
-      - key: NODE_OPTIONS
-        value: "--max-old-space-size=460"
-      # Single free-tier instance: shared server+worker; admin off to fit memory.
       - key: MEDUSA_WORKER_MODE
         value: shared
       - key: DISABLE_MEDUSA_ADMIN

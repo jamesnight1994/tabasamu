@@ -1,0 +1,25 @@
+{
+  "name": "tabasamu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tabasamu monorepo — front-end (Next), backend (NestJS), commerce (Medusa interim)",
+  "packageManager": "yarn@4.10.3",
+  "scripts": {
+    "front:dev": "yarn --cwd front-end dev",
+    "front:build": "yarn --cwd front-end build",
+    "front:start": "yarn --cwd front-end start",
+    "front:verify": "yarn --cwd front-end verify",
+    "front:test": "yarn --cwd front-end test",
+    "back:dev": "yarn --cwd backend dev",
+    "back:build": "yarn --cwd backend build",
+    "back:start": "yarn --cwd backend start:prod",
+    "medusa": "yarn --cwd commerce medusa",
+    "commerce:dev": "yarn --cwd commerce backend:dev",
+    "commerce:seed": "yarn --cwd commerce backend:seed",
+    "commerce:user": "yarn --cwd commerce backend:user",
+    "commerce:migrate": "yarn --cwd commerce backend:migrate",
+    "docker": "./scripts/docker-yarn.sh",
+    "docker:medusa": "./scripts/docker-yarn.sh -s medusa",
+    "docker:app": "./scripts/docker-yarn.sh -s app"
+  }
+}

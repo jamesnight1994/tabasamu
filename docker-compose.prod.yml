@@ -1,4 +1,4 @@
-# Production-style container (standalone Next.js server).
+# Production-style container (standalone Next.js server in front-end/).
 #
 # Usage:
 #   docker compose -f docker-compose.prod.yml up --build
@@ -8,7 +8,7 @@
 services:
   app:
     build:
-      context: .
+      context: ./front-end
       target: runner
       args:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
@@ -20,9 +20,9 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - path: .env.example
+      - path: front-end/.env.example
         required: false
-      - path: .env.local
+      - path: front-end/.env.local
         required: false
     environment:
       NODE_ENV: production

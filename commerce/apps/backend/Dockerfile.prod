@@ -1,0 +1,47 @@
+# syntax=docker/dockerfile:1
+# Medusa backend — production image (compile at build time; runtime only migrates + serves).
+#
+# Build from commerce/ workspace root:
+#   docker build -f apps/backend/Dockerfile.prod -t tabasamu-medusa:prod .
+
+ARG NODE_VERSION=20
+
+FROM node:${NODE_VERSION}-bookworm-slim AS base
+RUN corepack enable && corepack prepare yarn@4.10.3 --activate
+WORKDIR /workspace
+
+# ---------- deps ----------
+FROM base AS deps
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn ./.yarn
+COPY apps/backend/package.json ./apps/backend/package.json
+RUN yarn install --immutable
+
+# ---------- build ----------
+FROM deps AS builder
+COPY apps/backend ./apps/backend
+WORKDIR /workspace/apps/backend
+# Admin off keeps the compile smaller (matches Render free-tier env).
+ENV NODE_ENV=production \
+    DISABLE_MEDUSA_ADMIN=true \
+    NODE_OPTIONS=--max-old-space-size=3072
+RUN yarn build \
+  # Reuse workspace install — npm install in .medusa/server has no lockfile and is very slow.
+  && cp -a /workspace/node_modules /workspace/apps/backend/.medusa/server/node_modules
+
+# ---------- runtime ----------
+FROM node:${NODE_VERSION}-bookworm-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production \
+    DISABLE_MEDUSA_ADMIN=true \
+    PORT=9000
+
+RUN groupadd --system --gid 1001 medusa \
+  && useradd --system --uid 1001 --gid medusa medusa
+
+COPY --from=builder --chown=medusa:medusa /workspace/apps/backend/.medusa/server ./
+
+USER medusa
+EXPOSE 9000
+# No medusa build here — only migrate + start the prebuilt server.
+CMD ["sh", "-c", "npm run predeploy && npm run start"]
