@@ -49,6 +49,8 @@ yarn start:dev                # http://localhost:3001/v1/products
 
 From repo root: `yarn back:dev` · `yarn back:seed`
 
+**Adding Nest endpoints:** [`backend/CONTRIBUTING.md`](backend/CONTRIBUTING.md).
+
 ### Docker (lean Nest stack — no Medusa)
 
 ```bash

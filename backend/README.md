@@ -2,6 +2,8 @@
 
 Lean ecommerce API (Phase 1: **product management**). Replaces Medusa for catalogue reads; no Medusa runtime in this package.
 
+**Adding endpoints / features:** see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+
 ## Ports
 
 | Service | Port |
