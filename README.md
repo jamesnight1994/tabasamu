@@ -2,7 +2,7 @@
 
 Premium caffeine-free rooibos kombucha, brewed in Nairobi. Six flavours, 1 Litre.
 
-**Status:** feature-complete, release-ready **storefront** under [`front-end/`](front-end/). NestJS API scaffold under [`backend/`](backend/) (ecommerce APIs TBD). Medusa remains in [`commerce/`](commerce/) as the interim commerce engine.
+**Status:** feature-complete, release-ready **storefront** under [`front-end/`](front-end/). NestJS **product API (Phase 1)** under [`backend/`](backend/). Medusa remains in [`commerce/`](commerce/) as the interim engine for cart/auth until later Nest phases.
 
 > **Backend developer? Start with [`docs/56_START_HERE_Backend_Developer.md`](docs/56_START_HERE_Backend_Developer.md).**
 
@@ -13,7 +13,7 @@ Premium caffeine-free rooibos kombucha, brewed in Nairobi. Six flavours, 1 Litre
 | Path | Role | Port |
 |---|---|---|
 | [`front-end/`](front-end/) | Next.js 15 storefront | **3000** |
-| [`backend/`](backend/) | NestJS API scaffold | **3001** |
+| [`backend/`](backend/) | NestJS product API (Phase 1) | **3001** |
 | [`commerce/`](commerce/) | Medusa v2 (interim) | **9000** |
 
 Root `package.json` only orchestrates scripts into those packages.
@@ -40,11 +40,24 @@ yarn front:verify
 ```bash
 cd backend
 yarn install
-cp .env.example .env          # PORT=3001
-yarn start:dev                # http://localhost:3001
+cp .env.example .env          # PORT=3001, DATABASE_URL → tabasamu DB, ADMIN_API_KEY
+# docker compose up -d postgres   # if needed; create DB tabasamu once
+yarn prisma:migrate
+yarn prisma:seed
+yarn start:dev                # http://localhost:3001/v1/products
 ```
 
-From repo root: `yarn back:dev`
+From repo root: `yarn back:dev` · `yarn back:seed`
+
+### Docker (lean Nest stack — no Medusa)
+
+```bash
+yarn docker:dev
+# Storefront http://localhost:3000 · Nest http://localhost:3001/v1/products
+# Postgres localhost:5435 (user/pass/db: tabasamu)
+```
+
+Stop with `yarn docker:dev:down`. Medusa stack remains `docker compose up` (separate file).
 
 ## Verification (storefront)
 
@@ -56,14 +69,14 @@ yarn build
 
 ## Architecture (storefront)
 
-Hexagonal / ports-and-adapters under `front-end/src`. UI depends on **typed ports**, satisfied today by **mock adapters**; switch with `NEXT_PUBLIC_ADAPTERS=http` for Medusa HTTP adapters.
+Hexagonal / ports-and-adapters under `front-end/src`. UI depends on **typed ports**, satisfied today by **mock adapters**; switch with `NEXT_PUBLIC_ADAPTERS=http` and `NEXT_PUBLIC_API_URL=http://localhost:3001` for the Nest product API (cart/auth still stub/Medusa until later phases).
 
 ## Commands (root)
 
 | Command | Does |
 |---|---|
 | `yarn front:dev` / `front:build` / `front:verify` | Storefront |
-| `yarn back:dev` / `back:build` | NestJS API |
+| `yarn back:dev` / `back:build` / `back:seed` | NestJS API |
 | `yarn medusa …` · `commerce:*` | Medusa under `commerce/` |
 | `yarn docker …` | Run a package.json script inside Docker Compose |
 
