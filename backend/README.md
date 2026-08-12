@@ -1,98 +1,128 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Tabasamu NestJS API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Lean ecommerce API (Phase 1: **product management**). Replaces Medusa for catalogue reads; no Medusa runtime in this package.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+**Adding endpoints / features:** see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
-## Description
+## Ports
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Service | Port |
+|---|---|
+| This API | **3001** |
+| Next storefront | 3000 |
+| Medusa (interim) | 9000 |
 
-## Project setup
+## Setup
 
 ```bash
-$ yarn install
+cp .env.example .env
+# Ensure Postgres is up (Compose): docker compose up -d postgres
+# DATABASE_URL must use database `tabasamu` (not `medusa`)
+
+yarn install
+yarn prisma:migrate
+yarn prisma:seed
+yarn start:dev
 ```
 
-## Compile and run the project
+## Swagger UI
+
+With the API running (`yarn start:dev` or Compose `api` on **3001**):
+
+| | URL |
+|---|---|
+| UI | http://localhost:3001/docs |
+| OpenAPI JSON | http://localhost:3001/docs-json |
+| OpenAPI YAML | http://localhost:3001/docs-yaml |
+
+Authorize admin routes in the UI with the `admin-api-key` scheme (`X-Admin-Api-Key` = your `ADMIN_API_KEY`).
+
+## Endpoints (prefix `/v1`)
+
+| Method | Path | Auth |
+|---|---|---|
+| GET | `/products?status=` | public |
+| GET | `/products/:slugOrId` | public |
+| GET | `/inventory/:variantId` | public |
+| GET/POST | `/admin/products` | `X-Admin-Api-Key` |
+| PUT | `/admin/products/:id` | `X-Admin-Api-Key` |
+| POST | `/admin/products/:id/publish` | `X-Admin-Api-Key` |
+
+## Frontend integration
+
+Storefront already talks to this API via `front-end` `nestFetch` (`NEXT_PUBLIC_API_URL` / `NEST_API_URL`, default `http://localhost:3001`). Paths below are relative to that origin; the client adds the `/v1` prefix.
+
+### Public catalogue (no auth)
+
+| Method | Path | Notes |
+|---|---|---|
+| `GET` | `/v1/products` | Optional `?status=draft\|active\|archived`. Response: `{ items, nextCursor }` |
+| `GET` | `/v1/products/:slugOrId` | Single product |
+| `GET` | `/v1/inventory/:variantId` | Stock snapshot for a variant |
+
+### Admin products (API key)
+
+There is **no User / session login** yet. Admin identity is a shared secret:
+
+```http
+X-Admin-Api-Key: <same value as backend ADMIN_API_KEY>
+```
+
+| Env | Where |
+|---|---|
+| `ADMIN_API_KEY` | Backend `.env` (required for `/v1/admin/*`) |
+| Admin client | Send the same value on every admin request (server-side only — do not put the key in `NEXT_PUBLIC_*`) |
+
+Missing or wrong key → **401**.
+
+| Method | Path | Body / behaviour |
+|---|---|---|
+| `GET` | `/v1/admin/products` | Optional `?status=…`. `{ items: Product[], nextCursor: null }` |
+| `POST` | `/v1/admin/products` | Create; default `status` is `draft`. Returns the product |
+| `PUT` | `/v1/admin/products/:id` | Partial update (`name`, `position`, `descriptor`, `base`, …) |
+| `POST` | `/v1/admin/products/:id/publish` | Sets `status` to `active` if `descriptor` + `base` are set; else **422** with `{ message, missing }` |
+
+**Create example** (shape the admin UI should send):
+
+```json
+{
+  "slug": "grape-ginger",
+  "name": "Grape Ginger",
+  "flavour": "Grape Ginger",
+  "descriptor": "Caffeine Free",
+  "base": "Rooibos",
+  "variants": [
+    {
+      "sku": "TS-GG-1L",
+      "sizeCode": "1L",
+      "millilitres": 1000,
+      "stockOnHand": 5,
+      "priceAmount": 55000
+    }
+  ]
+}
+```
+
+**Response fields** the UI should rely on: `id`, `slug`, `name`, `status` (`draft` \| `active` \| `archived`), `variants[]` (each with `id`, `sku`, `size`, `price`, `stockOnHand`). Several catalogue fields use Pending wrappers (`{ available, value }` or `{ available: false, decision, note }`) — treat unavailable as “not ready to show,” not as empty string.
+
+### Executable contract
+
+Prefer the e2e suite over this README when wiring the admin client:
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+# Postgres from yarn docker:dev (host :5435). Once:
+#   docker exec tabasamu-dev-postgres-1 psql -U tabasamu -d tabasamu -c 'CREATE DATABASE tabasamu_test;'
+cp test/.env.e2e.example test/.env.e2e   # optional
+yarn test:e2e -- test/admin-products.e2e-spec.ts
 ```
 
-## Run tests
+See [`test/admin-products.e2e-spec.ts`](./test/admin-products.e2e-spec.ts) for auth, CRUD, and publish **401 / 422 / active** cases.
+## Docker Compose (dev)
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+# From repo root
+docker compose -f docker-compose.dev.yml up --build
+# or: yarn docker:dev
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Services: `postgres` (:5435), `api` (:3001), `app` (:3000 with `NEXT_PUBLIC_ADAPTERS=http`).
