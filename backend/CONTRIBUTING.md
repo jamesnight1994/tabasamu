@@ -12,6 +12,19 @@ How to add endpoints and features to [`backend/`](./). Package manager: **Yarn o
 
 Align Nest DTOs with OpenAPI `/v1` and the ports the storefront already calls. Prefer matching the port, not Medusa Store payloads.
 
+## Frontend integration (admin products)
+
+Living docs = e2e suite [`test/admin-products.e2e-spec.ts`](./test/admin-products.e2e-spec.ts):
+
+```bash
+yarn test:e2e -- test/admin-products.e2e-spec.ts
+```
+
+- Base URL prefix: `/v1`
+- Admin header: `X-Admin-Api-Key: <ADMIN_API_KEY>` (API key identity — no User table yet)
+- Endpoints: `GET|POST /admin/products`, `PUT /admin/products/:id`, `POST /admin/products/:id/publish`
+- Test DB: `E2E_DATABASE_URL` → `tabasamu_test` on Compose Postgres `:5435` (see `test/.env.e2e.example`)
+
 ## Layout
 
 ```

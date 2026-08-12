@@ -1,0 +1,316 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Admin products (e2e) — frontend integration contract GET /v1/admin/products with admin key lists created product 1`] = `
+{
+  "items": [
+    {
+      "base": {
+        "available": true,
+        "value": "Rooibos",
+      },
+      "descriptor": {
+        "available": true,
+        "value": "Caffeine Free",
+      },
+      "fermentationDays": {
+        "available": false,
+        "decision": "D-52",
+        "note": "Fermentation days have not been confirmed.",
+      },
+      "flavour": "E2E Flavour",
+      "forwardNote": {
+        "available": false,
+        "decision": "D-51",
+        "note": "A forward note for E2E Flavour has not been written or approved.",
+      },
+      "id": "<id>",
+      "images": [],
+      "ingredients": {
+        "available": false,
+        "decision": "D-05",
+        "note": "The ingredients list is regulated food information and has not been supplied.",
+      },
+      "name": "E2E Flavour",
+      "nutrition": {
+        "available": false,
+        "decision": "D-05",
+        "note": "The nutritional panel is regulated food information and has not been supplied.",
+      },
+      "position": 0,
+      "provenance": {
+        "available": false,
+        "decision": "D-49",
+        "note": "Named farms and regions have not been supplied.",
+      },
+      "seo": null,
+      "slug": "e2e-flavour-snapshot",
+      "status": "draft",
+      "strip": {
+        "color": "#2C2A29",
+        "label": "E2E FLAVOUR",
+      },
+      "subscriptionEligible": true,
+      "variants": [
+        {
+          "active": true,
+          "compareAtPrice": null,
+          "id": "<id>",
+          "price": {
+            "available": false,
+            "decision": "D-14",
+            "note": "Retail prices are not client-approved yet. Demo amounts are plumbing only.",
+          },
+          "productId": "<id>",
+          "size": {
+            "code": "1L",
+            "label": "1 Litre",
+            "millilitres": 1000,
+          },
+          "sku": "TS-E2E-SNAPSHOT-1L",
+          "stockOnHand": 5,
+        },
+      ],
+    },
+  ],
+  "nextCursor": null,
+}
+`;
+
+exports[`Admin products (e2e) — frontend integration contract GET /v1/admin/products with wrong API key → 401 1`] = `
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing X-Admin-Api-Key",
+  "statusCode": 401,
+}
+`;
+
+exports[`Admin products (e2e) — frontend integration contract GET /v1/admin/products without API key → 401 1`] = `
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing X-Admin-Api-Key",
+  "statusCode": 401,
+}
+`;
+
+exports[`Admin products (e2e) — frontend integration contract POST /v1/admin/products with admin key creates a draft product 1`] = `
+{
+  "base": {
+    "available": true,
+    "value": "Rooibos",
+  },
+  "descriptor": {
+    "available": true,
+    "value": "Caffeine Free",
+  },
+  "fermentationDays": {
+    "available": false,
+    "decision": "D-52",
+    "note": "Fermentation days have not been confirmed.",
+  },
+  "flavour": "E2E Flavour",
+  "forwardNote": {
+    "available": false,
+    "decision": "D-51",
+    "note": "A forward note for E2E Flavour has not been written or approved.",
+  },
+  "id": "<id>",
+  "images": [],
+  "ingredients": {
+    "available": false,
+    "decision": "D-05",
+    "note": "The ingredients list is regulated food information and has not been supplied.",
+  },
+  "name": "E2E Flavour",
+  "nutrition": {
+    "available": false,
+    "decision": "D-05",
+    "note": "The nutritional panel is regulated food information and has not been supplied.",
+  },
+  "position": 0,
+  "provenance": {
+    "available": false,
+    "decision": "D-49",
+    "note": "Named farms and regions have not been supplied.",
+  },
+  "seo": null,
+  "slug": "e2e-flavour-snapshot",
+  "status": "draft",
+  "strip": {
+    "color": "#2C2A29",
+    "label": "E2E FLAVOUR",
+  },
+  "subscriptionEligible": true,
+  "variants": [
+    {
+      "active": true,
+      "compareAtPrice": null,
+      "id": "<id>",
+      "price": {
+        "available": false,
+        "decision": "D-14",
+        "note": "Retail prices are not client-approved yet. Demo amounts are plumbing only.",
+      },
+      "productId": "<id>",
+      "size": {
+        "code": "1L",
+        "label": "1 Litre",
+        "millilitres": 1000,
+      },
+      "sku": "TS-E2E-SNAPSHOT-1L",
+      "stockOnHand": 5,
+    },
+  ],
+}
+`;
+
+exports[`Admin products (e2e) — frontend integration contract POST /v1/admin/products/:id/publish with descriptor/base → active 1`] = `
+{
+  "base": {
+    "available": true,
+    "value": "Rooibos",
+  },
+  "descriptor": {
+    "available": true,
+    "value": "Caffeine Free",
+  },
+  "fermentationDays": {
+    "available": false,
+    "decision": "D-52",
+    "note": "Fermentation days have not been confirmed.",
+  },
+  "flavour": "E2E Flavour",
+  "forwardNote": {
+    "available": false,
+    "decision": "D-51",
+    "note": "A forward note for E2E Flavour Updated has not been written or approved.",
+  },
+  "id": "<id>",
+  "images": [],
+  "ingredients": {
+    "available": false,
+    "decision": "D-05",
+    "note": "The ingredients list is regulated food information and has not been supplied.",
+  },
+  "name": "E2E Flavour Updated",
+  "nutrition": {
+    "available": false,
+    "decision": "D-05",
+    "note": "The nutritional panel is regulated food information and has not been supplied.",
+  },
+  "position": 99,
+  "provenance": {
+    "available": false,
+    "decision": "D-49",
+    "note": "Named farms and regions have not been supplied.",
+  },
+  "seo": null,
+  "slug": "e2e-flavour-snapshot",
+  "status": "active",
+  "strip": {
+    "color": "#2C2A29",
+    "label": "E2E FLAVOUR UPDATED",
+  },
+  "subscriptionEligible": true,
+  "variants": [
+    {
+      "active": true,
+      "compareAtPrice": null,
+      "id": "<id>",
+      "price": {
+        "available": false,
+        "decision": "D-14",
+        "note": "Retail prices are not client-approved yet. Demo amounts are plumbing only.",
+      },
+      "productId": "<id>",
+      "size": {
+        "code": "1L",
+        "label": "1 Litre",
+        "millilitres": 1000,
+      },
+      "sku": "TS-E2E-SNAPSHOT-1L",
+      "stockOnHand": 5,
+    },
+  ],
+}
+`;
+
+exports[`Admin products (e2e) — frontend integration contract POST /v1/admin/products/:id/publish without descriptor/base → 422 1`] = `
+{
+  "message": "Cannot publish until required fields are set",
+  "missing": [
+    "descriptor (D-13)",
+    "base (D-50)",
+  ],
+}
+`;
+
+exports[`Admin products (e2e) — frontend integration contract PUT /v1/admin/products/:id updates product fields 1`] = `
+{
+  "base": {
+    "available": true,
+    "value": "Rooibos",
+  },
+  "descriptor": {
+    "available": true,
+    "value": "Caffeine Free",
+  },
+  "fermentationDays": {
+    "available": false,
+    "decision": "D-52",
+    "note": "Fermentation days have not been confirmed.",
+  },
+  "flavour": "E2E Flavour",
+  "forwardNote": {
+    "available": false,
+    "decision": "D-51",
+    "note": "A forward note for E2E Flavour Updated has not been written or approved.",
+  },
+  "id": "<id>",
+  "images": [],
+  "ingredients": {
+    "available": false,
+    "decision": "D-05",
+    "note": "The ingredients list is regulated food information and has not been supplied.",
+  },
+  "name": "E2E Flavour Updated",
+  "nutrition": {
+    "available": false,
+    "decision": "D-05",
+    "note": "The nutritional panel is regulated food information and has not been supplied.",
+  },
+  "position": 99,
+  "provenance": {
+    "available": false,
+    "decision": "D-49",
+    "note": "Named farms and regions have not been supplied.",
+  },
+  "seo": null,
+  "slug": "e2e-flavour-snapshot",
+  "status": "draft",
+  "strip": {
+    "color": "#2C2A29",
+    "label": "E2E FLAVOUR UPDATED",
+  },
+  "subscriptionEligible": true,
+  "variants": [
+    {
+      "active": true,
+      "compareAtPrice": null,
+      "id": "<id>",
+      "price": {
+        "available": false,
+        "decision": "D-14",
+        "note": "Retail prices are not client-approved yet. Demo amounts are plumbing only.",
+      },
+      "productId": "<id>",
+      "size": {
+        "code": "1L",
+        "label": "1 Litre",
+        "millilitres": 1000,
+      },
+      "sku": "TS-E2E-SNAPSHOT-1L",
+      "stockOnHand": 5,
+    },
+  ],
+}
+`;
