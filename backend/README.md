@@ -25,6 +25,18 @@ yarn prisma:seed
 yarn start:dev
 ```
 
+## Swagger UI
+
+With the API running (`yarn start:dev` or Compose `api` on **3001**):
+
+| | URL |
+|---|---|
+| UI | http://localhost:3001/docs |
+| OpenAPI JSON | http://localhost:3001/docs-json |
+| OpenAPI YAML | http://localhost:3001/docs-yaml |
+
+Authorize admin routes in the UI with the `admin-api-key` scheme (`X-Admin-Api-Key` = your `ADMIN_API_KEY`).
+
 ## Endpoints (prefix `/v1`)
 
 | Method | Path | Auth |
