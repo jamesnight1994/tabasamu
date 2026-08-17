@@ -22,7 +22,7 @@ import type {
   PreferencesService,
   PaymentGateway,
 } from '../../ports';
-import type { Collection, Inventory, FlavourSlug } from '../../domain/catalogue';
+import type { Inventory, FlavourSlug } from '../../domain/catalogue';
 import { availableStock, unavailable } from '../../domain/catalogue';
 import {
   EMPTY_DELIVERY_CONFIG,
@@ -65,7 +65,8 @@ import type { Email, Session, ValidRegistration, AuthError } from '../../domain/
 import type { CustomerProfile, ValidAddress } from '../../domain/identity/customer';
 import { AppError, appError } from '../../lib/errors';
 import { medusaFetch } from './medusa-client';
-import { mapMedusaProduct, type MedusaStoreProduct } from './map-product';
+import { nestFetch } from './api-client';
+import { mapNestProduct, type NestApiProduct } from './map-nest-product';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const stub = (name: string): any =>
@@ -109,17 +110,14 @@ const setStoredCartId = (id: string | null): void => {
   else window.localStorage.removeItem(CART_ID_KEY);
 };
 
-// Medusa Store fields: nested `*variants.calculated_price` / `*variants.prices`
-// return 400 on this backend. Request images + variants; pricing uses region
-// context elsewhere when available.
-const PRODUCT_FIELDS = '+thumbnail,+images.url,+images.alt,+images.rank,*variants';
-
+// Nest OpenAPI /v1 product catalogue (Phase 1). Cart/auth still use Medusa where implemented.
 const productsRepo = (): ProductRepository => ({
   async list(filter?: ProductFilter) {
-    const data = await medusaFetch<{ products: MedusaStoreProduct[] }>(
-      `/store/products?limit=100&fields=${encodeURIComponent(PRODUCT_FIELDS)}`
+    const qs = filter?.status ? `?status=${encodeURIComponent(filter.status)}` : '';
+    const data = await nestFetch<{ items: NestApiProduct[]; nextCursor: string | null }>(
+      `/products${qs}`
     );
-    let products = (data.products ?? []).map((p, i) => mapMedusaProduct(p, i + 1));
+    let products = (data.items ?? []).map(mapNestProduct);
     if (filter?.status) products = products.filter((p) => p.status === filter.status);
     if (filter?.slugs?.length) {
       const set = new Set(filter.slugs);
@@ -128,18 +126,18 @@ const productsRepo = (): ProductRepository => ({
     return products;
   },
   async bySlug(slug: string) {
-    const data = await medusaFetch<{ products: MedusaStoreProduct[] }>(
-      `/store/products?handle=${encodeURIComponent(slug)}&limit=1&fields=${encodeURIComponent(PRODUCT_FIELDS)}`
-    );
-    const raw = data.products?.[0];
-    return raw ? mapMedusaProduct(raw, 1) : null;
+    try {
+      const raw = await nestFetch<NestApiProduct>(`/products/${encodeURIComponent(slug)}`);
+      return mapNestProduct(raw);
+    } catch (e) {
+      if (e instanceof AppError && e.code === 'NOT_FOUND') return null;
+      throw e;
+    }
   },
   async byId(id) {
     try {
-      const data = await medusaFetch<{ product: MedusaStoreProduct }>(
-        `/store/products/${id}?fields=${encodeURIComponent(PRODUCT_FIELDS)}`
-      );
-      return data.product ? mapMedusaProduct(data.product, 1) : null;
+      const raw = await nestFetch<NestApiProduct>(`/products/${encodeURIComponent(String(id))}`);
+      return mapNestProduct(raw);
     } catch (e) {
       if (e instanceof AppError && e.code === 'NOT_FOUND') return null;
       throw e;
@@ -149,53 +147,53 @@ const productsRepo = (): ProductRepository => ({
 
 const collectionsRepo = (): CollectionRepository => ({
   async list() {
-    const data = await medusaFetch<{ collections: Array<{ id: string; title: string; handle?: string }> }>(
-      '/store/collections?limit=50'
-    );
-    return (data.collections ?? []).map(
-      (c, i): Collection => ({
-        id: c.id,
-        slug: c.handle ?? c.id,
-        title: c.title,
-        description: unavailable('R-03', 'Collection copy is not supplied via Medusa yet.'),
-        productIds: [],
-        image: unavailable('R-03', 'No collection photograph exists.'),
-        status: 'active',
-        position: i + 1,
-      })
-    );
+    // Collections not in Nest Phase 1 — empty until Phase 2+.
+    return [];
   },
-  async bySlug(slug: string) {
-    const all = await collectionsRepo().list();
-    return all.find((c) => c.slug === slug) ?? null;
+  async bySlug(_slug: string) {
+    return null;
   },
 });
 
 const inventoryService = (): InventoryService => ({
   async check(vid) {
-    const products = await productsRepo().list();
-    for (const p of products) {
-      const v = p.variants.find((x) => x.id === vid);
-      if (!v) continue;
-      const onHand = 10; // Store API may not expose raw on-hand; Medusa enforces at cart.
-      const inv: Inventory = {
-        variantId: v.id,
-        onHand,
-        reserved: 0,
-        available: onHand,
-        lowStockThreshold: unavailable('D-27', 'Threshold not supplied.'),
-        policy: 'deny',
+    try {
+      const inv = await nestFetch<{
+        variantId: string;
+        onHand: number;
+        reserved: number;
+        available: number;
+        lowStockThreshold: { available: boolean; decision?: string; note?: string };
+        policy: Inventory['policy'];
+        nextBatch: null;
+      }>(`/inventory/${encodeURIComponent(String(vid))}`);
+
+      const mapped: Inventory = {
+        variantId: variantId(inv.variantId),
+        onHand: inv.onHand,
+        reserved: inv.reserved,
+        available: inv.available,
+        lowStockThreshold:
+          inv.lowStockThreshold?.available === false
+            ? unavailable(
+                inv.lowStockThreshold.decision ?? 'D-27',
+                inv.lowStockThreshold.note ?? 'Threshold not supplied.'
+              )
+            : unavailable('D-27', 'Threshold not supplied.'),
+        policy: inv.policy ?? 'deny',
         nextBatch: null,
       };
-      return { ...inv, available: availableStock(inv) };
+      return { ...mapped, available: availableStock(mapped) };
+    } catch (e) {
+      if (e instanceof AppError && e.code === 'NOT_FOUND') return null;
+      throw e;
     }
-    return null;
   },
   async reserve() {
     return Err({ kind: 'not_found' });
   },
   async release() {
-    /* no-op — Medusa owns reservations in cart */
+    /* Nest Phase 1 — no reservation API yet */
   },
 });
 

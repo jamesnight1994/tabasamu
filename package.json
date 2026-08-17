@@ -10,9 +10,11 @@
     "front:start": "yarn --cwd front-end start",
     "front:verify": "yarn --cwd front-end verify",
     "front:test": "yarn --cwd front-end test",
-    "back:dev": "yarn --cwd backend dev",
+    "back:dev": "yarn --cwd backend start:dev",
     "back:build": "yarn --cwd backend build",
     "back:start": "yarn --cwd backend start:prod",
+    "back:migrate": "yarn --cwd backend prisma:migrate",
+    "back:seed": "yarn --cwd backend prisma:seed",
     "medusa": "yarn --cwd commerce medusa",
     "commerce:dev": "yarn --cwd commerce backend:dev",
     "commerce:seed": "yarn --cwd commerce backend:seed",
@@ -20,6 +22,8 @@
     "commerce:migrate": "yarn --cwd commerce backend:migrate",
     "docker": "./scripts/docker-yarn.sh",
     "docker:medusa": "./scripts/docker-yarn.sh -s medusa",
-    "docker:app": "./scripts/docker-yarn.sh -s app"
+    "docker:app": "./scripts/docker-yarn.sh -s app",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down"
   }
 }
