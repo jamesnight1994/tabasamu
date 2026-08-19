@@ -4,7 +4,7 @@
  * Auth today: header `X-Admin-Api-Key` (see ADMIN_API_KEY). No User table yet.
  * Response bodies are snapshotted under `__snapshots__/` (stable ids replaced).
  *
- * Run (Postgres on :5435 from docker-compose.dev.yml):
+ * Run (Postgres on :5437 from docker-compose.dev.yml):
  *   # once: CREATE DATABASE tabasamu_test;
  *   yarn test:e2e -- test/admin-products.e2e-spec.ts
  * Update snapshots: yarn test:e2e -- test/admin-products.e2e-spec.ts -u

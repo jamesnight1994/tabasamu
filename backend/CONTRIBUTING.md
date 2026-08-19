@@ -6,7 +6,7 @@ How to add endpoints and features to [`backend/`](./). Package manager: **Yarn o
 
 | Layer | Source of truth |
 |---|---|
-| Storefront ports | [`front-end/src/ports/index.ts`](../front-end/src/ports/index.ts) |
+| Storefront ports | [`frontend/src/ports/index.ts`](../frontend/src/ports/index.ts) |
 | Wire shapes | [`docs/openapi.yaml`](../docs/openapi.yaml) · [`docs/59_API_Specification.md`](../docs/59_API_Specification.md) |
 | Domain honesty | Pending / Unavailable fields — do not invent client-blocked facts (D-14 prices, D-05 nutrition, …) |
 
@@ -23,7 +23,7 @@ yarn test:e2e -- test/admin-products.e2e-spec.ts
 - Base URL prefix: `/v1`
 - Admin header: `X-Admin-Api-Key: <ADMIN_API_KEY>` (API key identity — no User table yet)
 - Endpoints: `GET|POST /admin/products`, `PUT /admin/products/:id`, `POST /admin/products/:id/publish`
-- Test DB: `E2E_DATABASE_URL` → `tabasamu_test` on Compose Postgres `:5435` (see `test/.env.e2e.example`)
+- Test DB: `E2E_DATABASE_URL` → `tabasamu_test` on Compose Postgres `:5437` (see `test/.env.e2e.example`)
 
 ## Layout
 
@@ -70,9 +70,9 @@ Copy the **products** module pattern. Do not invent a second architecture.
 5. **HTTP shapes** — match OpenAPI; money = integer **minor units**; use Pending markers for unapproved commercial fields.
 6. **Seed** — extend `prisma/seed.ts` when the feature needs baseline catalogue / config data.
 7. **Storefront** (when a port is ready for this API):
-   - Call Nest via [`front-end/src/adapters/http/api-client.ts`](../front-end/src/adapters/http/api-client.ts) (`nestFetch`)
+   - Call Nest via [`frontend/src/adapters/http/api-client.ts`](../frontend/src/adapters/http/api-client.ts) (`nestFetch`)
    - Map responses in a dedicated mapper (see `map-nest-product.ts`)
-   - Wire the port in [`front-end/src/adapters/http/index.ts`](../front-end/src/adapters/http/index.ts)
+   - Wire the port in [`frontend/src/adapters/http/index.ts`](../frontend/src/adapters/http/index.ts)
    - Keep mocks as the default for CI (`NEXT_PUBLIC_ADAPTERS=mock`)
 
 ## Reference implementation
@@ -102,7 +102,7 @@ yarn start:dev   # http://localhost:3001/v1/…
 ```bash
 # from repo root
 yarn docker:dev
-# API :3001 · Postgres :5435 (user/pass/db tabasamu) · storefront :3000
+# API :3001 · Postgres :5437 (user/pass/db tabasamu) · storefront :3000
 ```
 
 If host `:3001` is busy: `NEST_HOST_PORT=3011 yarn docker:dev`.

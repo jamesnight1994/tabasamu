@@ -50,7 +50,7 @@ Authorize admin routes in the UI with the `admin-api-key` scheme (`X-Admin-Api-K
 
 ## Frontend integration
 
-Storefront already talks to this API via `front-end` `nestFetch` (`NEXT_PUBLIC_API_URL` / `NEST_API_URL`, default `http://localhost:3001`). Paths below are relative to that origin; the client adds the `/v1` prefix.
+Storefront already talks to this API via [`frontend/`](../frontend/) `nestFetch` (`NEXT_PUBLIC_API_URL` / `NEST_API_URL`, default `http://localhost:3001`). Paths below are relative to that origin; the client adds the `/v1` prefix.
 
 ### Public catalogue (no auth)
 
@@ -110,19 +110,19 @@ Missing or wrong key → **401**.
 Prefer the e2e suite over this README when wiring the admin client:
 
 ```bash
-# Postgres from yarn docker:dev (host :5435). Once:
+# Postgres from yarn docker:dev (host :5437). Once:
 #   docker exec tabasamu-dev-postgres-1 psql -U tabasamu -d tabasamu -c 'CREATE DATABASE tabasamu_test;'
 cp test/.env.e2e.example test/.env.e2e   # optional
 yarn test:e2e -- test/admin-products.e2e-spec.ts
 ```
 
 See [`test/admin-products.e2e-spec.ts`](./test/admin-products.e2e-spec.ts) for auth, CRUD, and publish **401 / 422 / active** cases.
-## Docker Compose (dev)
+## Docker Compose
 
 ```bash
-# From repo root
-docker compose -f docker-compose.dev.yml up --build
-# or: yarn docker:dev
+# From repo root — storefront is frontend/
+yarn docker:dev     # hot reload · Postgres :5437
+yarn docker:prod    # production images · Postgres :5436
 ```
 
-Services: `postgres` (:5435), `api` (:3001), `app` (:3000 with `NEXT_PUBLIC_ADAPTERS=http`).
+Services: `postgres`, `api` (:3001), `app` (`frontend/` on :3000, `NEXT_PUBLIC_ADAPTERS=http`).

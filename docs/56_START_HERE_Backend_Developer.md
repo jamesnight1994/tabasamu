@@ -4,7 +4,7 @@
 project is, what is already built, what you must build, and how you will know
 when you are done. Everything else in `docs/` is reference; this is the map.
 
-**NestJS API (Phase 1 product catalogue):** lives under [`backend/`](../backend/). How to add endpoints and modules: [`backend/CONTRIBUTING.md`](../backend/CONTRIBUTING.md). Storefront ports still win for shapes; OpenAPI is in `docs/openapi.yaml`.
+**NestJS API (Phase 1 product catalogue):** lives under [`backend/`](../backend/). Storefront lives under [`frontend/`](../frontend/). How to add endpoints and modules: [`backend/CONTRIBUTING.md`](../backend/CONTRIBUTING.md). Storefront ports still win for shapes; OpenAPI is in `docs/openapi.yaml`.
 
 **Read time:** ~15 minutes. **Do not skip §3 (the one thing that matters) or §7 (the honesty rules).**
 

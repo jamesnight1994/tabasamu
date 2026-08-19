@@ -2,7 +2,7 @@
 
 Premium caffeine-free rooibos kombucha, brewed in Nairobi. Six flavours, 1 Litre.
 
-**Status:** feature-complete, release-ready **storefront** under [`front-end/`](front-end/). NestJS **product API (Phase 1)** under [`backend/`](backend/). Medusa remains in [`commerce/`](commerce/) as the interim engine for cart/auth until later Nest phases.
+**Status:** feature-complete, release-ready **storefront** under [`frontend/`](frontend/). NestJS **product API (Phase 1)** under [`backend/`](backend/). Medusa remains in [`commerce/`](commerce/) as the interim engine for cart/auth until later Nest phases.
 
 > **Backend developer? Start with [`docs/56_START_HERE_Backend_Developer.md`](docs/56_START_HERE_Backend_Developer.md).**
 
@@ -12,7 +12,7 @@ Premium caffeine-free rooibos kombucha, brewed in Nairobi. Six flavours, 1 Litre
 
 | Path | Role | Port |
 |---|---|---|
-| [`front-end/`](front-end/) | Next.js 15 storefront | **3000** |
+| [`frontend/`](frontend/) | Next.js 15 storefront | **3000** |
 | [`backend/`](backend/) | NestJS product API (Phase 1) | **3001** |
 | [`commerce/`](commerce/) | Medusa v2 (interim) | **9000** |
 
@@ -22,10 +22,11 @@ Root `package.json` only orchestrates scripts into those packages.
 
 ```bash
 corepack enable
-cd front-end
+cd frontend
 yarn install
 cp .env.example .env.local
-yarn dev                     # http://localhost:3000 (mock adapters)
+# For Nest catalogue: NEXT_PUBLIC_ADAPTERS=http and NEXT_PUBLIC_API_URL=http://localhost:3001
+yarn dev                     # http://localhost:3000
 ```
 
 From repo root:
@@ -44,41 +45,42 @@ cp .env.example .env          # PORT=3001, DATABASE_URL → tabasamu DB, ADMIN_A
 # docker compose up -d postgres   # if needed; create DB tabasamu once
 yarn prisma:migrate
 yarn prisma:seed
-yarn start:dev                # http://localhost:3001/v1/products
+yarn start:dev                # http://localhost:3001/v1/products · Swagger /docs
 ```
 
 From repo root: `yarn back:dev` · `yarn back:seed`
 
 **Adding Nest endpoints:** [`backend/CONTRIBUTING.md`](backend/CONTRIBUTING.md).
 
-### Docker (lean Nest stack — no Medusa)
+### Docker — Nest + storefront
 
 ```bash
-yarn docker:dev
-# Storefront http://localhost:3000 · Nest http://localhost:3001/v1/products
-# Postgres localhost:5435 (user/pass/db: tabasamu)
+yarn docker:dev          # hot reload, Postgres :5437
+yarn docker:prod         # production images, Postgres :5436
+# Storefront http://localhost:3000 · Nest http://localhost:3001
 ```
 
-Stop with `yarn docker:dev:down`. Medusa stack remains `docker compose up` (separate file).
+Stop with `yarn docker:dev:down` / `yarn docker:prod:down`. Medusa stack remains `docker compose up` (separate file).
 
 ## Verification (storefront)
 
 ```bash
-cd front-end
+cd frontend
 yarn verify   # lint + typecheck + contrast + brand + tests
 yarn build
 ```
 
 ## Architecture (storefront)
 
-Hexagonal / ports-and-adapters under `front-end/src`. UI depends on **typed ports**, satisfied today by **mock adapters**; switch with `NEXT_PUBLIC_ADAPTERS=http` and `NEXT_PUBLIC_API_URL=http://localhost:3001` for the Nest product API (cart/auth still stub/Medusa until later phases).
+Hexagonal / ports-and-adapters under `frontend/src`. UI depends on **typed ports**, satisfied today by **mock adapters**; switch with `NEXT_PUBLIC_ADAPTERS=http` and `NEXT_PUBLIC_API_URL=http://localhost:3001` for the Nest product API (cart/auth still stub/Medusa until later phases).
 
 ## Commands (root)
 
 | Command | Does |
 |---|---|
-| `yarn front:dev` / `front:build` / `front:verify` | Storefront |
+| `yarn front:dev` / `front:build` / `front:verify` | Storefront (`frontend/`) |
 | `yarn back:dev` / `back:build` / `back:seed` | NestJS API |
+| `yarn docker:dev` / `docker:prod` | Nest + Postgres + Next |
 | `yarn medusa …` · `commerce:*` | Medusa under `commerce/` |
 | `yarn docker …` | Run a package.json script inside Docker Compose |
 
@@ -97,23 +99,23 @@ docker compose up -d --build
 yarn docker medusa user -e admin@tabasamu.local -p '…'
 yarn docker commerce:seed
 yarn docker -s app typecheck
-# Publishable key → front-end/.env.local as NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+# Publishable key → frontend/.env.local as NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
 ```
 
 **Docker smoke** (Postgres + Redis + Medusa + Next):
 
 ```bash
-cp front-end/.env.example front-end/.env.local
+cp frontend/.env.example frontend/.env.local
 cp commerce/apps/backend/.env.example commerce/apps/backend/.env
 docker compose up --build
 # Storefront http://localhost:3000 · Medusa http://localhost:9000 (/app)
 ```
 
-**Vercel:** set project Root Directory to `front-end`.
+**Vercel:** set project Root Directory to `frontend`.
 
 ## Brand logo assets
 
-Approved artwork: **`front-end/public/brand/approved/`**. Render via the `Logo` component only. Brand lint: `yarn --cwd front-end lint:brand`.
+Approved artwork: **`frontend/public/brand/approved/`**. Render via the `Logo` component only. Brand lint: `yarn --cwd frontend lint:brand`.
 
 ## Documentation
 

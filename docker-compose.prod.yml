@@ -1,32 +1,77 @@
-# Production-style container (standalone Next.js server in front-end/).
+# Production-style stack — Nest API + Postgres + Next storefront (`frontend/`).
 #
 # Usage:
 #   docker compose -f docker-compose.prod.yml up --build
+#   # or: yarn docker:prod
 #
-# App: http://localhost:3000
+# Storefront: http://localhost:3000  (ADAPTERS=http → Nest)
+# Nest API:   http://localhost:3001/v1/products  · Swagger /docs
+# Postgres:   localhost:5436  (db/user/pass: tabasamu)
+
+name: tabasamu-prod
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tabasamu
+      POSTGRES_USER: tabasamu
+      POSTGRES_PASSWORD: tabasamu
+    ports:
+      - "5436:5432"
+    volumes:
+      - tabasamu_prod_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tabasamu -d tabasamu"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      target: runner
+    ports:
+      - "${NEST_HOST_PORT:-3001}:3001"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DATABASE_URL: postgresql://tabasamu:tabasamu@postgres:5432/tabasamu?schema=public
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-dev-admin-key-change-me}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
   app:
     build:
-      context: ./front-end
+      context: ./frontend
       target: runner
       args:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
         NEXT_PUBLIC_APP_ENV: ${NEXT_PUBLIC_APP_ENV:-production}
-        NEXT_PUBLIC_ADAPTERS: ${NEXT_PUBLIC_ADAPTERS:-mock}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        NEXT_PUBLIC_ADAPTERS: ${NEXT_PUBLIC_ADAPTERS:-http}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
         NEXT_PUBLIC_ANALYTICS_ENABLED: ${NEXT_PUBLIC_ANALYTICS_ENABLED:-false}
         NEXT_PUBLIC_LOG_LEVEL: ${NEXT_PUBLIC_LOG_LEVEL:-info}
     ports:
       - "3000:3000"
     env_file:
-      - path: front-end/.env.example
+      - path: frontend/.env.example
         required: false
-      - path: front-end/.env.local
+      - path: frontend/.env.local
         required: false
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_ADAPTERS: ${NEXT_PUBLIC_ADAPTERS:-http}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      NEST_API_URL: http://api:3001
+    depends_on:
+      - api
     restart: unless-stopped
+
+volumes:
+  tabasamu_prod_postgres:

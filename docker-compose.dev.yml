@@ -6,7 +6,8 @@
 #
 # Storefront: http://localhost:3000  (ADAPTERS=http → Nest)
 # Nest API:   http://localhost:3001/v1/products
-# Postgres:   localhost:5435  (db/user/pass: tabasamu)
+# Postgres:   localhost:5437  (db/user/pass: tabasamu)
+# If host :5437 is busy: TABASAMU_PG_HOST_PORT=5438 yarn docker:dev
 #
 # If host :3001 is busy: NEST_HOST_PORT=3011 yarn docker:dev
 #
@@ -22,9 +23,9 @@ services:
       POSTGRES_DB: tabasamu
       POSTGRES_USER: tabasamu
       POSTGRES_PASSWORD: tabasamu
-    # Host 5435 — avoid clash with Medusa Compose (5434) and other local stacks.
+    # Host 5437 — avoid local Postgres (5432), Medusa Compose (5434), and other stacks.
     ports:
-      - "5435:5432"
+      - "${TABASAMU_PG_HOST_PORT:-5437}:5432"
     volumes:
       - tabasamu_dev_postgres:/var/lib/postgresql/data
     healthcheck:
@@ -61,7 +62,7 @@ services:
 
   app:
     build:
-      context: ./front-end
+      context: ./frontend
       target: development
     ports:
       - "3000:3000"
@@ -78,7 +79,7 @@ services:
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     volumes:
-      - ./front-end:/app
+      - ./frontend:/app
       - app_dev_node_modules:/app/node_modules
       - app_dev_next:/app/.next
     depends_on:

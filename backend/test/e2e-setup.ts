@@ -20,7 +20,7 @@ export const E2E_ADMIN_API_KEY = process.env.ADMIN_API_KEY?.trim() || 'e2e-admin
 export const E2E_DATABASE_URL =
   process.env.E2E_DATABASE_URL?.trim() ||
   process.env.DATABASE_URL?.trim() ||
-  'postgresql://tabasamu:tabasamu@localhost:5435/tabasamu_test?schema=public';
+  'postgresql://tabasamu:tabasamu@localhost:5437/tabasamu_test?schema=public';
 
 let prisma: PrismaClient | null = null;
 

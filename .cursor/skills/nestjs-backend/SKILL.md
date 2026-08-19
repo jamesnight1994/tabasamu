@@ -13,7 +13,7 @@ description: >-
 
 1. **Read** [`backend/CONTRIBUTING.md`](../../../backend/CONTRIBUTING.md) end to end.
 2. Treat these as contract sources of truth (ports win on conflict):
-   - [`front-end/src/ports/index.ts`](../../../front-end/src/ports/index.ts)
+   - [`frontend/src/ports/index.ts`](../../../frontend/src/ports/index.ts)
    - [`docs/openapi.yaml`](../../../docs/openapi.yaml)
    - [`docs/59_API_Specification.md`](../../../docs/59_API_Specification.md)
 
@@ -42,7 +42,7 @@ Register new modules in `backend/src/app.module.ts`. Global HTTP prefix is `v1` 
 - **Lean schema** — do not add cart/checkout/payment tables until that Nest phase is explicitly planned.
 - **Honesty** — Pending / D-\* markers for unapproved commercial data (especially D-14 prices); do not invent facts.
 - **Admin writes** — `@UseGuards(AdminApiKeyGuard)` + header `X-Admin-Api-Key`.
-- **Storefront** — when wiring ports, use `front-end/src/adapters/http/api-client.ts` (`nestFetch`) and a Nest-specific mapper; keep `NEXT_PUBLIC_ADAPTERS=mock` as CI default.
+- **Storefront** — when wiring ports, use `frontend/src/adapters/http/api-client.ts` (`nestFetch`) and a Nest-specific mapper; keep `NEXT_PUBLIC_ADAPTERS=mock` as CI default.
 
 ## Local verification
 
