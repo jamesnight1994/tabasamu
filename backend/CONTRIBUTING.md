@@ -14,6 +14,8 @@ Align Nest DTOs with OpenAPI `/v1` and the ports the storefront already calls. P
 
 ## Frontend integration (admin products)
 
+Human-readable contract: [`docs/71_Nest_Product_Admin_API.md`](../docs/71_Nest_Product_Admin_API.md) (GitHub [#7](https://github.com/jamesnight1994/tabasamu/issues/7)).
+
 Living docs = e2e suite [`test/admin-products.e2e-spec.ts`](./test/admin-products.e2e-spec.ts):
 
 ```bash

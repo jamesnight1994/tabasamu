@@ -50,6 +50,8 @@ Authorize admin routes in the UI with the `admin-api-key` scheme (`X-Admin-Api-K
 
 ## Frontend integration
 
+Full request/response contract: [`docs/71_Nest_Product_Admin_API.md`](../docs/71_Nest_Product_Admin_API.md).
+
 Storefront already talks to this API via [`frontend/`](../frontend/) `nestFetch` (`NEXT_PUBLIC_API_URL` / `NEST_API_URL`, default `http://localhost:3001`). Paths below are relative to that origin; the client adds the `/v1` prefix.
 
 ### Public catalogue (no auth)
