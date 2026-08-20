@@ -243,7 +243,7 @@ describe('image slot registry', () => {
     // arrived, which is exactly what it was for.
     //
     // Supplied: grape-ginger, pineapple, pineapple-ginger, passion — plus the
-    // hero, ingredients slot, and why-choose-us band (reuses pineapple-ginger).
+    // hero, ingredients slot, and why-choose-us band (process.jpg).
     expect(suppliedCount()).toBe(7);
 
     const stillMissing = missingSlots().map((s) => s.id);
