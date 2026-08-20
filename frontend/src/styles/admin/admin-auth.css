@@ -1,0 +1,60 @@
+/**
+ * Admin auth page ground only — all form UI uses HeroUI components.
+ */
+
+.admin-auth-shell {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #e2e8f0;
+}
+
+/* HeroUI checkbox — subtle border when idle; none when checked or pressed */
+.admin-auth-shell .checkbox__control {
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  box-shadow: none;
+}
+
+.admin-auth-shell .checkbox:not([data-selected='true']):not([aria-checked='true']):hover
+  .checkbox__control,
+.admin-auth-shell
+  .checkbox:not([data-selected='true']):not([aria-checked='true'])
+  :has([data-slot='checkbox-content'][data-hovered='true'])
+  .checkbox__control,
+.admin-auth-shell
+  .checkbox:not([data-selected='true']):not([aria-checked='true'])
+  [data-slot='checkbox-content'][data-hovered='true']
+  .checkbox__control {
+  border-color: #94a3b8;
+  background-color: #f1f5f9;
+}
+
+.admin-auth-shell .checkbox[aria-checked='true'] .checkbox__control,
+.admin-auth-shell .checkbox[data-selected='true'] .checkbox__control,
+.admin-auth-shell .checkbox[data-indeterminate='true'] .checkbox__control {
+  border: none;
+}
+
+.admin-auth-shell .checkbox:active .checkbox__control,
+.admin-auth-shell
+  .checkbox:has([data-slot='checkbox-content'][data-pressed='true'])
+  .checkbox__control,
+.admin-auth-shell
+  .checkbox
+  [data-slot='checkbox-content'][data-pressed='true']
+  .checkbox__control {
+  border: none;
+}
+
+.admin-auth-shell .checkbox__content {
+  color: #334155;
+  font-weight: 500;
+}
+
+.admin-auth-shell .checkbox:focus-visible .checkbox__control,
+.admin-auth-shell
+  .checkbox:has([data-slot='checkbox-content'][data-focus-visible='true'])
+  .checkbox__control {
+  outline: 2px solid #0f766e;
+  outline-offset: 2px;
+}
