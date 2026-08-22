@@ -150,10 +150,41 @@ const createRecord = async <T>(path: string, data: unknown): Promise<T> => {
   return returnApiResponse<T>(response);
 };
 
+const getAll = async <T>(
+  path: string,
+  params?: Record<string, string>,
+): Promise<T> => {
+  applyAuthHeaders();
+  const response = await axiosApi.get(path, {
+    params,
+    validateStatus: (s) => s >= 200 && s < 300,
+  });
+  return returnApiResponse<T>(response);
+};
+
+const updateRecord = async <T>(path: string, data: unknown): Promise<T> => {
+  applyAuthHeaders();
+  const response = await axiosApi.put(path, data, {
+    validateStatus: (s) => s >= 200 && s < 300,
+  });
+  return returnApiResponse<T>(response);
+};
+
+const postRecord = async <T>(path: string, data?: unknown): Promise<T> => {
+  applyAuthHeaders();
+  const response = await axiosApi.post(path, data ?? {}, {
+    validateStatus: (s) => s >= 200 && s < 300,
+  });
+  return returnApiResponse<T>(response);
+};
+
 export const adminWebApi = {
   createAuthRecord,
   getAllAuth,
   createRecord,
+  getAll,
+  updateRecord,
+  postRecord,
   clearAuthHeaders,
   applyAuthHeaders,
   /** @deprecated Use applyAuthHeaders */

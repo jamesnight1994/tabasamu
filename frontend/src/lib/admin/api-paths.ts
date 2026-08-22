@@ -3,6 +3,9 @@ export const ADMIN_API_PATHS = {
   profile: '/accounts/profile/',
   user: (id: string) => `/api/users/${id}/`,
   forgotPassword: '/api/accountRecovery/forgotPassword',
+  products: '/admin/products',
+  product: (id: string) => `/admin/products/${id}`,
+  productPublish: (id: string) => `/admin/products/${id}/publish`,
 } as const;
 
 export const ADMIN_ROUTES = {
