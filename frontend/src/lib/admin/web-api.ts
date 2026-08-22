@@ -3,6 +3,11 @@ import { AdminApiError } from './admin-api-error';
 import { adminAuthClient } from './auth-client';
 import { ADMIN_API_PATHS } from './api-paths';
 import {
+  getDevBypassApiKey,
+  isActiveDevBypassSession,
+  isDevBypassSession,
+} from './dev-auth-bypass';
+import {
   extractApiErrorMessage,
   isAuthExpiredError,
   looksLikeAuthFailureMessage,
@@ -22,17 +27,41 @@ export const resetAuthRedirectState = () => {
   isRedirectingToLogin = false;
 };
 
-const configHeader = () => {
+const clearBearerHeaders = () => {
+  delete axiosApi.defaults.headers.common.Authorization;
+  delete authAxiosApi.defaults.headers.common.Authorization;
+};
+
+const clearAdminApiKeyHeader = () => {
+  delete axiosApi.defaults.headers.common['X-Admin-Api-Key'];
+};
+
+const configBearerHeader = () => {
   const token = adminAuthClient.getAuthToken();
-  if (!token) return;
+  if (!token || isDevBypassSession(token)) return;
   const header = `Bearer ${token}`;
   axiosApi.defaults.headers.common.Authorization = header;
   authAxiosApi.defaults.headers.common.Authorization = header;
 };
 
+export const applyAuthHeaders = () => {
+  if (isActiveDevBypassSession(adminAuthClient.getAuthToken())) {
+    clearBearerHeaders();
+    const key = getDevBypassApiKey();
+    clearAdminApiKeyHeader();
+    if (key) {
+      axiosApi.defaults.headers.common['X-Admin-Api-Key'] = key;
+    }
+    return;
+  }
+
+  clearAdminApiKeyHeader();
+  configBearerHeader();
+};
+
 export const clearAuthHeaders = () => {
-  delete axiosApi.defaults.headers.common.Authorization;
-  delete authAxiosApi.defaults.headers.common.Authorization;
+  clearBearerHeaders();
+  clearAdminApiKeyHeader();
 };
 
 const reauthorize = () => {
@@ -75,8 +104,10 @@ const handleResponseError = (err: unknown) => {
   const apiMessage = extractApiErrorMessage(err, 'Request failed');
   const requestUrl = axiosErr?.config?.url ?? '';
   const isLoginRequest = requestUrl.includes(ADMIN_API_PATHS.login);
+  const bypassSession = isActiveDevBypassSession(adminAuthClient.getAuthToken());
 
   const authExpired =
+    !bypassSession &&
     !isLoginRequest &&
     (isAuthExpiredError(err) ||
       ((status === 401 || status === 403) && looksLikeAuthFailureMessage(apiMessage)));
@@ -104,7 +135,7 @@ const createAuthRecord = async <T>(path: string, data: unknown): Promise<T> => {
 };
 
 const getAllAuth = async <T>(path: string): Promise<T> => {
-  configHeader();
+  applyAuthHeaders();
   const response = await authAxiosApi.get(path, {
     validateStatus: (s) => s >= 200 && s < 300,
   });
@@ -112,7 +143,7 @@ const getAllAuth = async <T>(path: string): Promise<T> => {
 };
 
 const createRecord = async <T>(path: string, data: unknown): Promise<T> => {
-  configHeader();
+  applyAuthHeaders();
   const response = await axiosApi.post(path, data, {
     validateStatus: (s) => s >= 200 && s < 300,
   });
@@ -124,5 +155,7 @@ export const adminWebApi = {
   getAllAuth,
   createRecord,
   clearAuthHeaders,
-  configHeader,
+  applyAuthHeaders,
+  /** @deprecated Use applyAuthHeaders */
+  configHeader: applyAuthHeaders,
 };

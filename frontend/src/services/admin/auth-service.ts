@@ -1,6 +1,11 @@
 import { ADMIN_API_PATHS } from '../../lib/admin/api-paths';
 import { adminAuthClient } from '../../lib/admin/auth-client';
 import {
+  buildDevBypassStaff,
+  DEV_BYPASS_TOKEN,
+  isAdminDevBypassEnabled,
+} from '../../lib/admin/dev-auth-bypass';
+import {
   clearStaleAuth,
   completeLogin,
   fetchAuthenticatedStaff,
@@ -10,6 +15,13 @@ import { adminWebApi } from '../../lib/admin/web-api';
 export const adminAuthService = {
   async login(email: string, password: string) {
     clearStaleAuth();
+
+    if (isAdminDevBypassEnabled()) {
+      const user = buildDevBypassStaff(email);
+      const token = DEV_BYPASS_TOKEN;
+      completeLogin(user, token);
+      return { user, token };
+    }
 
     const loginResp = await adminWebApi.createAuthRecord<{ accessToken: string }>(
       ADMIN_API_PATHS.login,

@@ -1,0 +1,96 @@
+/**
+ * Dashboard tabs — flat underline style (mirrors next-app .collection-schedules-dashboard-tabs).
+ */
+
+.admin-dashboard-card {
+  min-height: 0;
+}
+
+.admin-dashboard-tabs {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+.admin-dashboard-tabs > .tabs__list-container {
+  flex-shrink: 0;
+  background-color: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 0;
+}
+
+.admin-dashboard-tabs .tabs__list {
+  width: 100%;
+  min-width: 0;
+  padding: 0 0.5rem;
+}
+
+.admin-dashboard-tabs .tabs__tab {
+  flex: 0 1 auto;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 1.2rem 1rem 1.1rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #6b7280;
+  background-color: transparent;
+  opacity: 1;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.admin-dashboard-tabs .tabs__tab[data-selected='true'] {
+  color: #111827;
+  font-weight: 600;
+  border-bottom-color: var(--admin-dashboard-tab-active-color, #2563eb);
+  background-color: transparent;
+}
+
+.admin-dashboard-tabs .tabs__tab[data-selected='true'] svg {
+  color: var(--admin-dashboard-tab-active-color, #2563eb);
+}
+
+.admin-dashboard-tabs
+  .tabs__tab:not([data-selected='true']):not([data-disabled='true']):hover,
+.admin-dashboard-tabs
+  .tabs__tab[data-hovered='true']:not([data-selected='true']):not([data-disabled='true']) {
+  opacity: 1;
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.admin-dashboard-tabs .tabs__indicator {
+  display: none;
+}
+
+.admin-dashboard-tabs__tab-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.admin-dashboard-tabs .tabs__panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  margin-top: 0;
+  min-height: 0;
+  padding: 0;
+}
+
+.admin-dashboard-tabs__panel-body {
+  flex: 1 1 auto;
+  min-height: 100%;
+  overflow-y: auto;
+  padding: 1.25rem 1rem;
+}

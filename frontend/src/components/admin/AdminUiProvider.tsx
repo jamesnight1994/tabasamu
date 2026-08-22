@@ -2,6 +2,8 @@
 
 import { Toast } from '@heroui/react';
 import '../../styles/admin/admin-auth.css';
+import '../../styles/admin/admin-shell.css';
+import '../../styles/admin/admin-dashboard.css';
 
 export function AdminUiProvider({ children }: { children: React.ReactNode }) {
   return (
