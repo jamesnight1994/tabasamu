@@ -1,9 +1,12 @@
 # Lean local development — Nest API + Postgres + Next storefront (no Medusa).
 #
 # Usage:
-#   yarn docker:dev            # start (reuse images)
-#   yarn docker:dev --build    # rebuild images then start
-#   yarn docker:dev:down       # stop containers
+#   yarn docker:dev                 # start (reuse images)
+#   yarn docker:dev --build         # rebuild images then start
+#   yarn docker:dev restart app     # restart storefront only
+#   yarn docker:dev restart api     # restart Nest only
+#   yarn docker:dev logs app        # follow storefront logs
+#   yarn docker:dev down            # stop containers
 #
 # Storefront: http://localhost:3000  (ADAPTERS=http → Nest)
 # Nest API:   http://localhost:3001/v1/products
