@@ -87,7 +87,7 @@ const FOOTER_LINK = cn(
 );
 
 const FOOTER_LEGAL_LINK = cn(
-  'footer-legal-link no-underline',
+  'footer-legal-link no-underline text-[0.875rem]',
   'focus-visible:outline-2 focus-visible:outline-[--color-focus-inverse] focus-visible:outline-offset-2',
   'rounded-[--radius-sm]'
 );
@@ -314,7 +314,7 @@ function FooterLegalBar() {
         'flex flex-col gap-4 text-[length:--text-micro] md:flex-row md:items-center md:justify-between'
       )}
     >
-      <p className="text-footer-muted">
+      <p className="text-footer-muted text-[0.875rem]">
         © {year} {FOOTER.companyName}
         {FOOTER.companyRegistration ? ` · ${FOOTER.companyRegistration}` : ''} ·{' '}
         {NAV_UTILITY.contact.locationFallback}

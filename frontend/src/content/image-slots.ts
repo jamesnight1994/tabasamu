@@ -195,15 +195,15 @@ export const PROCESS_SLOT: ImageSlot = {
 
 export const WHY_CHOOSE_US_SLOT: ImageSlot = {
   id: 'why-choose-us',
-  src: '/products/pineapple-ginger.jpg',
-  alt: 'A hand-glazed bowl of pineapple and raw ginger beside a bottle of Tabasamu Sips.',
-  width: 1800,
-  height: 1200,
-  aspect: '3/2',
+  src: '/process/process.jpg',
+  alt: 'Tabasamu Sips brewing process in the Nairobi kitchen.',
+  width: 1248,
+  height: 1248,
+  aspect: '1/1',
   sizes: '(max-width: 768px) 100vw, 50vw',
   textOverlay: 'none',
   direction:
-    'Editorial still life for the why-choose-us band. Warm light, product visible, no tourism shorthand.',
+    'Editorial process shot for the why-choose-us band. Warm light, product visible, no tourism shorthand.',
   supplied: true,
 };
 
