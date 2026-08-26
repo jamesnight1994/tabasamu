@@ -23,7 +23,7 @@
     "docker": "./scripts/docker-yarn.sh",
     "docker:medusa": "./scripts/docker-yarn.sh -s medusa",
     "docker:app": "./scripts/docker-yarn.sh -s app",
-    "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up",
     "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
     "docker:prod": "docker compose -f docker-compose.prod.yml up --build",
     "docker:prod:down": "docker compose -f docker-compose.prod.yml down"

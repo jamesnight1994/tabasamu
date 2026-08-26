@@ -1,8 +1,9 @@
 # Lean local development — Nest API + Postgres + Next storefront (no Medusa).
 #
 # Usage:
-#   docker compose -f docker-compose.dev.yml up --build
-#   # or: yarn docker:dev
+#   yarn docker:dev            # start (reuse images)
+#   yarn docker:dev --build    # rebuild images then start
+#   yarn docker:dev:down       # stop containers
 #
 # Storefront: http://localhost:3000  (ADAPTERS=http → Nest)
 # Nest API:   http://localhost:3001/v1/products
@@ -13,6 +14,12 @@
 #
 # Stop Medusa stack first if port 3000 clashes:
 #   docker compose down
+#
+# Frontend Docker build runs `yarn install --immutable`. Keep frontend/yarn.lock
+# in sync after package.json changes: cd frontend && yarn install
+#
+# Stale app named volume after dep changes: docker compose -f docker-compose.dev.yml down -v
+# (also drops Postgres data — re-seed if needed)
 
 name: tabasamu-dev
 

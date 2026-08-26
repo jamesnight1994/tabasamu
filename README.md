@@ -55,12 +55,15 @@ From repo root: `yarn back:dev` · `yarn back:seed`
 ### Docker — Nest + storefront
 
 ```bash
-yarn docker:dev          # hot reload, Postgres :5437
+yarn docker:dev          # hot reload, Postgres :5437 (reuse images)
+yarn docker:dev --build  # rebuild images when Dockerfile / frontend deps change
 yarn docker:prod         # production images, Postgres :5436
 # Storefront http://localhost:3000 · Nest http://localhost:3001
 ```
 
 Stop with `yarn docker:dev:down` / `yarn docker:prod:down`. Medusa stack remains `docker compose up` (separate file).
+
+If `yarn docker:dev --build` fails with Yarn `YN0028` (lockfile would be modified), refresh the storefront lockfile first: `cd frontend && yarn install`.
 
 ## Verification (storefront)
 
@@ -80,7 +83,7 @@ Hexagonal / ports-and-adapters under `frontend/src`. UI depends on **typed ports
 |---|---|
 | `yarn front:dev` / `front:build` / `front:verify` | Storefront (`frontend/`) |
 | `yarn back:dev` / `back:build` / `back:seed` | NestJS API |
-| `yarn docker:dev` / `docker:prod` | Nest + Postgres + Next |
+| `yarn docker:dev` / `docker:prod` | Nest + Postgres + Next (`yarn docker:dev --build` to rebuild) |
 | `yarn medusa …` · `commerce:*` | Medusa under `commerce/` |
 | `yarn docker …` | Run a package.json script inside Docker Compose |
 
