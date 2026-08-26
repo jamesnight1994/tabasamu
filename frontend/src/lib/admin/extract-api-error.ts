@@ -88,11 +88,25 @@ export const isAuthExpiredError = (error: unknown): boolean => {
   return false;
 };
 
-export const extractApiErrorMessage = (error: unknown, fallback = 'Request failed'): string => {
-  const axiosError = error as {
+const readAxiosError = (error: unknown) =>
+  error as {
     response?: { data?: unknown; status?: number };
     message?: string;
   };
+
+export const getApiErrorStatus = (error: unknown): number | undefined =>
+  readAxiosError(error).response?.status;
+
+export const isProductSlugConflictError = (error: unknown): boolean => {
+  const status = getApiErrorStatus(error);
+  if (status !== 409) return false;
+
+  const message = extractApiErrorMessage(error, '');
+  return /slug already exists/i.test(message);
+};
+
+export const extractApiErrorMessage = (error: unknown, fallback = 'Request failed'): string => {
+  const axiosError = readAxiosError(error);
 
   const fromResponse = readResponsePayload(axiosError?.response?.data);
   if (fromResponse) return fromResponse;

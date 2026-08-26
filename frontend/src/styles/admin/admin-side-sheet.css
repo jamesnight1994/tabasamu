@@ -1,0 +1,59 @@
+/**
+ * Admin side sheet — 50% viewport panel below topnav, anchored right.
+ *
+ * Width must be applied to the dialog panel, not the content wrapper.
+ * Shrinking drawer-content to 50vw pins the panel to the viewport left edge
+ * (under the sidebar) and clips form labels.
+ */
+
+.admin-side-sheet-backdrop[data-slot='drawer-backdrop'] {
+  z-index: 998;
+}
+
+.admin-side-sheet[data-slot='drawer-content'] {
+  top: 4.25rem;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: none;
+  height: calc(100vh - 4.25rem);
+  max-height: calc(100vh - 4.25rem);
+  justify-content: flex-end;
+}
+
+.admin-side-sheet [data-slot='drawer-dialog'] {
+  display: flex;
+  min-height: 0;
+  flex: 0 0 auto;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+}
+
+.admin-side-sheet [data-slot='drawer-header'] {
+  padding: 0;
+}
+
+.admin-side-sheet [data-slot='drawer-footer'] {
+  margin-top: .15rem !important;
+  padding: 1rem var(--admin-products-inset, 1rem) .75rem 0;
+}
+
+.admin-side-sheet [data-slot='drawer-body'] {
+  min-height: 0;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .admin-side-sheet--half [data-slot='drawer-dialog'] {
+    width: 50vw;
+    max-width: 50vw;
+  }
+}

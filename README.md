@@ -50,7 +50,7 @@ yarn start:dev                # http://localhost:3001/v1/products · Swagger /do
 
 From repo root: `yarn back:dev` · `yarn back:seed`
 
-**Adding Nest endpoints:** [`backend/CONTRIBUTING.md`](backend/CONTRIBUTING.md).
+**Adding Nest endpoints:** [`backend/CONTRIBUTING.md`](backend/CONTRIBUTING.md). **Product / admin HTTP contract for the frontend:** [`docs/71_Nest_Product_Admin_API.md`](docs/71_Nest_Product_Admin_API.md).
 
 ### Docker — Nest + storefront
 
