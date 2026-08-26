@@ -7,6 +7,7 @@ import { bootstrapAdminSession, logoutStaff } from '../../redux/admin/slices/aut
 import { adminAuthClient } from '../../lib/admin/auth-client';
 import { AUTH_SESSION_EXPIRED_EVENT } from '../../lib/admin/web-api';
 import { ADMIN_ROUTES } from '../../lib/admin/api-paths';
+import { resolveAdminReturnUrl } from '../../lib/admin/admin-return-url';
 
 type AdminAuthContextValue = {
   logout: () => Promise<void>;
@@ -30,7 +31,9 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const authChecker = useCallback(() => {
     if (!adminAuthClient.hasSession()) {
-      router.replace(`${ADMIN_ROUTES.login}?returnUrl=${encodeURIComponent(pathname)}`);
+      router.replace(
+        `${ADMIN_ROUTES.login}?returnUrl=${encodeURIComponent(resolveAdminReturnUrl(pathname))}`,
+      );
       return false;
     }
     return true;
