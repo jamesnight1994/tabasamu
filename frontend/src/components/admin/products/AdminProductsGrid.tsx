@@ -16,6 +16,7 @@ type AdminProductsGridProps = {
   rows: AdminProductRow[];
   loading: boolean;
   hasSearchQuery: boolean;
+  actionsDisabled?: boolean;
   onEdit: (row: AdminProductRow) => void;
   onPublish: (row: AdminProductRow) => void;
   onDeactivate: (row: AdminProductRow) => void;
@@ -25,6 +26,7 @@ export function AdminProductsGrid({
   rows,
   loading,
   hasSearchQuery,
+  actionsDisabled = false,
   onEdit,
   onPublish,
   onDeactivate,
@@ -77,6 +79,7 @@ export function AdminProductsGrid({
                   <Table.Cell className="admin-products-table__cell admin-products-table__cell--actions">
                     <AdminProductsRowActions
                       row={row}
+                      disabled={actionsDisabled}
                       onEdit={onEdit}
                       onPublish={onPublish}
                       onDeactivate={onDeactivate}

@@ -58,7 +58,7 @@ export function AdminProductsPagination({
   const isLastPage = page >= totalPages;
 
   return (
-    <div className="admin-products-pagination flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-zinc-100 bg-white px-4 py-3">
+    <div className="admin-products-pagination flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-zinc-100 bg-white py-3">
       <p className="font-body text-sm text-zinc-600">
         Showing {first} to {last} of {total}
       </p>

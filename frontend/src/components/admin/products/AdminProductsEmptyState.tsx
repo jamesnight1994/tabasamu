@@ -16,7 +16,7 @@ export function AdminProductsEmptyState({ hasSearchQuery = false }: AdminProduct
       <p className="mt-2 font-body text-sm text-zinc-400">
         {hasSearchQuery
           ? 'Try a different search term or clear the filter.'
-          : 'Seed the Nest catalogue or create a product to get started.'}
+          : 'Use + to add your first product.'}
       </p>
     </div>
   );

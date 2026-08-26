@@ -24,3 +24,24 @@ export type AdminProductsGridColumn = {
 };
 
 export type AdminProductsStatusFilter = 'all' | AdminProductStatus;
+
+export type ProductSheetContext = 'addProduct' | 'updateProduct';
+
+export type ProductSheetState = {
+  visible: boolean;
+  context: ProductSheetContext | null;
+  productId: string | null;
+};
+
+export type AdminProductFormValues = {
+  name: string;
+  slug: string;
+  flavour: string;
+  position: number;
+  subscriptionEligible: boolean;
+  descriptor: string;
+  base: string;
+  forwardNote: string;
+  primarySku: string;
+  stockOnHand: number;
+};
