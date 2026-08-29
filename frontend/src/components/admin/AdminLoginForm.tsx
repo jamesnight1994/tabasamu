@@ -24,6 +24,7 @@ import { clearError, loginStaff } from '../../redux/admin/slices/authSlice';
 import { adminAuthClient } from '../../lib/admin/auth-client';
 import { clearStaleAuth, restoreStoredSession } from '../../lib/admin/auth-session';
 import { ADMIN_ROUTES } from '../../lib/admin/api-paths';
+import { resolveAdminReturnUrl } from '../../lib/admin/admin-return-url';
 
 const SESSION_CHECK_TIMEOUT_MS = 8_000;
 
@@ -42,7 +43,7 @@ export function AdminLoginForm() {
   const { status } = useAppSelector((s) => s.adminAuth);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get('returnUrl') ?? ADMIN_ROUTES.dashboard;
+  const returnUrl = resolveAdminReturnUrl(searchParams.get('returnUrl'));
 
   const [pageLoader, setPageLoader] = useState(true);
   const [loadingText, setLoadingText] = useState('Loading...');
