@@ -32,6 +32,8 @@ yarn-error.log*
 .env.*
 !.env.example
 !**/.env.example
+!.env.ssh.example
+.env.ssh
 
 # vercel
 .vercel

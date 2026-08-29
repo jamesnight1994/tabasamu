@@ -26,6 +26,7 @@
     "docker:dev": "./scripts/docker-dev.sh",
     "docker:dev:down": "./scripts/docker-dev.sh down",
     "docker:prod": "docker compose -f docker-compose.prod.yml up --build",
-    "docker:prod:down": "docker compose -f docker-compose.prod.yml down"
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down",
+    "server:ssh": "./scripts/ssh-server.sh"
   }
 }
