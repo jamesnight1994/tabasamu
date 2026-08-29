@@ -67,6 +67,19 @@ Stop with `yarn docker:dev down` (or `yarn docker:dev:down`) / `yarn docker:prod
 
 If `yarn docker:dev --build` fails with Yarn `YN0028` (lockfile would be modified), refresh the storefront lockfile first: `cd frontend && yarn install`.
 
+### Portainer (container GUI — bundled in dev & prod compose)
+
+[Portainer CE](https://www.portainer.io/) is included in `docker-compose.dev.yml` and `docker-compose.prod.yml` (`compose/portainer.yml`).
+
+```bash
+yarn docker:dev          # starts app + api + postgres + portainer
+yarn portainer           # portainer only (dev compose file)
+COMPOSE_FILE=docker-compose.prod.yml yarn portainer   # prod file, VM-style
+yarn portainer:down
+```
+
+UI: **https://localhost:9443** — first visit creates an admin password. Stack env vars in the UI replace a server `.env` for secrets.
+
 ## Verification (storefront)
 
 ```bash

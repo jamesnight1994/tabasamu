@@ -23,8 +23,13 @@
 #
 # Stale app named volume after dep changes: docker compose -f docker-compose.dev.yml down -v
 # (also drops Postgres data — re-seed if needed)
+#
+# Portainer GUI: https://localhost:9443 — manages this stack + any other containers on the host.
 
 name: tabasamu-dev
+
+include:
+  - path: compose/portainer.yml
 
 services:
   postgres:

@@ -7,8 +7,12 @@
 # Storefront: http://localhost:3000  (ADAPTERS=http → Nest)
 # Nest API:   http://localhost:3001/v1/products  · Swagger /docs
 # Postgres:   localhost:5436  (db/user/pass: tabasamu)
+# Portainer:  https://localhost:9443
 
 name: tabasamu-prod
+
+include:
+  - path: compose/portainer.yml
 
 services:
   postgres:
