@@ -113,7 +113,7 @@ Prefer the e2e suite over this README when wiring the admin client:
 
 ```bash
 # Postgres from yarn docker:compose up (host :5437). Once:
-#   docker exec tabasamu-dev-postgres-1 psql -U tabasamu -d tabasamu -c 'CREATE DATABASE tabasamu_test;'
+#   docker exec postgres psql -U tabasamu -d tabasamu -c 'CREATE DATABASE tabasamu_test;'
 cp test/.env.e2e.example test/.env.e2e   # optional
 yarn test:e2e -- test/admin-products.e2e-spec.ts
 ```
