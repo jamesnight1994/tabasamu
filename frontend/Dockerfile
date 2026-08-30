@@ -34,7 +34,7 @@ COPY . .
 # via TABASAMU_* → /runtime-env.js (Portainer-updatable without rebuild).
 ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
 ARG NEXT_PUBLIC_APP_ENV=staging
-ARG NEXT_PUBLIC_ADAPTERS=http
+ARG NEXT_PUBLIC_ADAPTERS=mock
 ARG NEXT_PUBLIC_API_URL=http://localhost:3001
 ARG NEXT_PUBLIC_ANALYTICS_ENABLED=false
 ARG NEXT_PUBLIC_LOG_LEVEL=info
