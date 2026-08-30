@@ -28,8 +28,14 @@ import { ProductDetail } from '../../../../components/shop/ProductDetail';
  */
 
 export async function generateStaticParams() {
-  const products = await getAdapters().products.list();
-  return products.map((p) => ({ slug: p.slug }));
+  try {
+    const products = await getAdapters().products.list();
+    return products.map((p) => ({ slug: p.slug }));
+  } catch {
+    // API may be unavailable during `next build` (e.g. Docker image build).
+    // Product pages are generated on first request instead.
+    return [];
+  }
 }
 
 interface Props {

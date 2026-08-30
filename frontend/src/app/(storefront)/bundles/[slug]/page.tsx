@@ -15,8 +15,9 @@ import { BundleBuilder } from '../../../../components/shop/BundleBuilder';
  */
 
 export async function generateStaticParams() {
-  const bundles = await getAdapters().bundles.list();
-  return bundles.map((b) => ({ slug: b.slug }));
+  // Bundles are mock-only until the Nest port ships. Http adapters stub this
+  // repository — pre-rendering at build would throw. Pages render on demand.
+  return [];
 }
 
 interface Props {

@@ -52,6 +52,11 @@ const isProd =
   (process.env.NODE_ENV === "production" && appEnv !== "development" && appEnv !== "staging") ||
   appEnv === "production";
 
+/** Only pin / upgrade when the public app URL is HTTPS (real TLS termination). */
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "").trim();
+const isHttpsApp = appUrl.startsWith("https://");
+const useHttpsHardening = isProd && isHttpsApp;
+
 /** Hosted Medusa origin from env (Render, Medusa Cloud, etc.) — for CSP + next/image. */
 const apiOrigin = (() => {
   const raw = (process.env.NEXT_PUBLIC_API_URL || "").trim();
@@ -101,8 +106,8 @@ const contentSecurityPolicy = [
   `form-action 'self'`,
   // No plugins / <object> / <embed>.
   `object-src 'none'`,
-  // Upgrade any stray http subresource to https in production only.
-  ...(isProd ? [`upgrade-insecure-requests`] : []),
+  // Upgrade stray http subresources only when the site is served over HTTPS.
+  ...(useHttpsHardening ? [`upgrade-insecure-requests`] : []),
 ].join("; ");
 
 const securityHeaders = [
@@ -131,11 +136,9 @@ const securityHeaders = [
     value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
   },
   {
-    // ⚠ HSTS — production only. Sending this on http://localhost would pin the
-    //   dev machine to https and break local development. Two years + preload
-    //   is the standard once the production domain is genuinely https-only.
+    // HSTS only when the public URL is HTTPS — never pin an http:// IP/dev host.
     key: "Strict-Transport-Security",
-    value: isProd ? "max-age=63072000; includeSubDomains; preload" : "max-age=0",
+    value: useHttpsHardening ? "max-age=63072000; includeSubDomains; preload" : "max-age=0",
   },
 ];
 
