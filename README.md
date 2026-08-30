@@ -54,31 +54,45 @@ From repo root: `yarn back:dev` · `yarn back:seed`
 
 ### Docker — Nest + storefront
 
+Primary CLI — forwards to `docker compose` (dev file by default):
+
 ```bash
-yarn docker:dev                 # hot reload, Postgres :5437 (reuse images)
-yarn docker:dev --build         # rebuild images when Dockerfile / frontend deps change
-yarn docker:dev restart app     # restart storefront only
-yarn docker:dev restart api     # restart Nest only
-yarn docker:prod                # production images, Postgres :5436
-# Storefront http://localhost:3000 · Nest http://localhost:3001
+yarn docker:compose up                         # lean stack (Postgres :5437)
+yarn docker:compose up --build                 # rebuild images then start
+yarn docker:compose up -d portainer-agent portainer
+yarn docker:compose logs -f api
+yarn docker:compose restart app
+yarn docker:compose down
+yarn docker:compose --prod up -d --build       # production compose file
+yarn docker:compose --prod down
 ```
 
-Stop with `yarn docker:dev down` (or `yarn docker:dev:down`) / `yarn docker:prod:down`. Medusa stack remains `docker compose up` (separate file).
+Shortcuts (same as compose under the hood):
 
-If `yarn docker:dev --build` fails with Yarn `YN0028` (lockfile would be modified), refresh the storefront lockfile first: `cd frontend && yarn install`.
+```bash
+yarn docker:dev          # → docker:compose up
+yarn docker:dev --build  # → docker:compose up --build
+yarn docker:dev:down     # → docker:compose down
+yarn docker:prod         # → docker:compose --prod up --build
+yarn docker:prod:down    # → docker:compose --prod down
+```
+
+Storefront http://localhost:3000 · Nest http://localhost:3001. Medusa stack remains `docker compose up` (separate file).
+
+If `yarn docker:compose up --build` fails with Yarn `YN0028` (lockfile would be modified), refresh the storefront lockfile first: `cd frontend && yarn install`.
 
 ### Portainer (container GUI — bundled in dev & prod compose)
 
-[Portainer CE](https://www.portainer.io/) is included in `docker-compose.dev.yml` and `docker-compose.prod.yml` (`compose/portainer.yml`).
+[Portainer CE](https://www.portainer.io/) is included via `compose/portainer.dev.yml` / `compose/portainer.yml`. The UI talks to a **Portainer Agent** container.
 
 ```bash
-yarn docker:dev          # starts app + api + postgres + portainer
-yarn portainer           # portainer only (dev compose file)
-COMPOSE_FILE=docker-compose.prod.yml yarn portainer   # prod file, VM-style
-yarn portainer:down
+yarn docker:compose up -d portainer-agent portainer   # Portainer only
+yarn docker:compose logs -f portainer-agent portainer
+yarn portainer:reset                                  # wipe DB + recreate (dev: admin / tabasamu-dev)
+yarn docker:compose --prod up -d portainer-agent portainer
 ```
 
-UI: **https://localhost:9443** — first visit creates an admin password. Stack env vars in the UI replace a server `.env` for secrets.
+UI: **https://localhost:9443** — dev credentials: `admin` / `tabasamu-dev` (see `compose/portainer-dev-admin.password`).
 
 ## Verification (storefront)
 
@@ -98,9 +112,10 @@ Hexagonal / ports-and-adapters under `frontend/src`. UI depends on **typed ports
 |---|---|
 | `yarn front:dev` / `front:build` / `front:verify` | Storefront (`frontend/`) |
 | `yarn back:dev` / `back:build` / `back:seed` | NestJS API |
-| `yarn docker:dev` / `docker:prod` | Nest + Postgres + Next (`--build`, `restart app`, `down`, …) |
+| `yarn docker:compose …` | `docker compose` against lean stack (dev default; `--prod` for prod) |
+| `yarn docker:dev` / `docker:prod` | Shortcuts for `up` / `up --build` |
 | `yarn medusa …` · `commerce:*` | Medusa under `commerce/` |
-| `yarn docker …` | Run a package.json script inside Docker Compose |
+| `yarn docker …` | Run a package.json script inside Docker Compose (Medusa/app) |
 
 ## Commerce (Medusa v2)
 

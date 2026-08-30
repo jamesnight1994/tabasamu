@@ -125,6 +125,7 @@ See [`test/admin-products.e2e-spec.ts`](./test/admin-products.e2e-spec.ts) for a
 # From repo root — storefront is frontend/
 yarn docker:dev     # hot reload · Postgres :5437
 yarn docker:prod    # production images · Postgres :5436
+# or: yarn docker:compose up / yarn docker:compose --prod up --build
 ```
 
 Services: `postgres`, `api` (:3001), `app` (`frontend/` on :3000, `NEXT_PUBLIC_ADAPTERS=http`).

@@ -1,19 +1,20 @@
 # Lean local development — Nest API + Postgres + Next storefront (no Medusa).
 #
 # Usage:
-#   yarn docker:dev                 # start (reuse images)
-#   yarn docker:dev --build         # rebuild images then start
-#   yarn docker:dev restart app     # restart storefront only
-#   yarn docker:dev restart api     # restart Nest only
-#   yarn docker:dev logs app        # follow storefront logs
-#   yarn docker:dev down            # stop containers
+#   yarn docker:compose up                    # start (reuse images)
+#   yarn docker:compose up --build            # rebuild then start
+#   yarn docker:compose restart app           # restart storefront only
+#   yarn docker:compose restart api           # restart Nest only
+#   yarn docker:compose logs -f app           # follow storefront logs
+#   yarn docker:compose down                  # stop containers
+#   yarn docker:dev                           # shortcut → up
 #
 # Storefront: http://localhost:3000  (ADAPTERS=http → Nest)
 # Nest API:   http://localhost:3001/v1/products
 # Postgres:   localhost:5437  (db/user/pass: tabasamu)
-# If host :5437 is busy: TABASAMU_PG_HOST_PORT=5438 yarn docker:dev
+# If host :5437 is busy: TABASAMU_PG_HOST_PORT=5438 yarn docker:compose up
 #
-# If host :3001 is busy: NEST_HOST_PORT=3011 yarn docker:dev
+# If host :3001 is busy: NEST_HOST_PORT=3011 yarn docker:compose up
 #
 # Stop Medusa stack first if port 3000 clashes:
 #   docker compose down
@@ -21,15 +22,17 @@
 # Frontend Docker build runs `yarn install --immutable`. Keep frontend/yarn.lock
 # in sync after package.json changes: cd frontend && yarn install
 #
-# Stale app named volume after dep changes: docker compose -f docker-compose.dev.yml down -v
+# Stale app named volume after dep changes: yarn docker:compose down -v
 # (also drops Postgres data — re-seed if needed)
 #
-# Portainer GUI: https://localhost:9443 — manages this stack + any other containers on the host.
+# Portainer GUI: https://localhost:9443 — dev login admin / tabasamu-dev
+# Uses Portainer Agent (not host docker.sock on the UI container).
+# If primary is unreachable: yarn portainer:reset
 
 name: tabasamu-dev
 
 include:
-  - path: compose/portainer.yml
+  - path: compose/portainer.dev.yml
 
 services:
   postgres:

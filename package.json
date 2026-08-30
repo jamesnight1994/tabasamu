@@ -23,12 +23,12 @@
     "docker": "./scripts/docker-yarn.sh",
     "docker:medusa": "./scripts/docker-yarn.sh -s medusa",
     "docker:app": "./scripts/docker-yarn.sh -s app",
-    "docker:dev": "./scripts/docker-dev.sh",
-    "docker:dev:down": "./scripts/docker-dev.sh down",
-    "docker:prod": "docker compose -f docker-compose.prod.yml up --build",
-    "docker:prod:down": "docker compose -f docker-compose.prod.yml down",
-    "portainer": "./scripts/docker-portainer.sh",
-    "portainer:down": "./scripts/docker-portainer.sh down",
+    "docker:compose": "./scripts/docker-compose-cli.sh",
+    "docker:dev": "./scripts/docker-compose-cli.sh up",
+    "docker:dev:down": "./scripts/docker-compose-cli.sh down",
+    "docker:prod": "./scripts/docker-compose-cli.sh --prod up --build",
+    "docker:prod:down": "./scripts/docker-compose-cli.sh --prod down",
+    "portainer:reset": "./scripts/portainer-reset.sh",
     "server:ssh": "./scripts/ssh-server.sh"
   }
 }

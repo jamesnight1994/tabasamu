@@ -1,7 +1,7 @@
 # Production-style stack — Nest API + Postgres + Next storefront (`frontend/`).
 #
 # Usage:
-#   docker compose -f docker-compose.prod.yml up --build
+#   yarn docker:compose --prod up --build
 #   # or: yarn docker:prod
 #
 # Storefront: http://localhost:3000  (ADAPTERS=http → Nest)

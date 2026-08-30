@@ -1,6 +1,7 @@
-# Shared Portainer CE + Agent — included by docker-compose.prod.yml.
-# UI: https://localhost:9443 (or http://localhost:9000)
-# First visit: create admin user. Agent talks to Docker; Portainer never mounts the socket.
+# Dev Portainer CE + Agent — auto admin + Docker via agent (not host socket / not Podman).
+# Login: admin / tabasamu-dev  (see portainer-dev-admin.password)
+# Reset broken setup: yarn portainer:reset
+# Start only: yarn docker:compose up -d portainer-agent portainer
 
 services:
   portainer-agent:
@@ -22,7 +23,9 @@ services:
       - "${PORTAINER_HTTPS_PORT:-9443}:9443"
     volumes:
       - portainer_data:/data
+      - ./portainer-dev-admin.password:/tmp/portainer-admin.password:ro
     command:
+      - --admin-password-file=/tmp/portainer-admin.password
       - -H
       - tcp://portainer-agent:9001
       - --tlsskipverify
