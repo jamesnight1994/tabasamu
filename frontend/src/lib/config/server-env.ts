@@ -41,6 +41,11 @@ const serverSchema = z.object({
   // --- notifications ---  ⛔ D-40, D-41
   EMAIL_PROVIDER: z.string().optional(),
   EMAIL_API_KEY: z.string().optional(),
+  /** Gmail SMTP — contact form (server-only). */
+  EMAIL_USER: z.string().optional(),
+  EMAIL_PASS: z.string().optional(),
+  /** Inbox for contact submissions; defaults to EMAIL_USER when unset. */
+  CONTACT_INBOX_TO: z.string().optional(),
   SMS_PROVIDER: z.string().optional(),
   SMS_API_KEY: z.string().optional(),
 

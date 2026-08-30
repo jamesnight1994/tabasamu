@@ -1,0 +1,149 @@
+/* Contact page — warm brown hero overlay (not black) */
+
+.contact-hero-overlay {
+  pointer-events: none;
+  /* Right-edge scrim — breadcrumbs sit top-right */
+  background:
+    linear-gradient(
+      to left,
+      color-mix(in oklab, var(--color-hero-panel) 92%, transparent) 0%,
+      color-mix(in oklab, var(--color-hero-panel) 68%, transparent) 28%,
+      transparent 58%
+    ),
+    linear-gradient(
+      105deg,
+      color-mix(in oklab, var(--color-hero-panel) 96%, transparent) 0%,
+      color-mix(in oklab, var(--color-hero-panel) 82%, transparent) 38%,
+      color-mix(in oklab, var(--color-hero-panel) 58%, transparent) 68%,
+      color-mix(in oklab, var(--color-hero-panel) 75%, transparent) 100%
+    );
+}
+
+.contact-hero-eyebrow {
+  color: color-mix(in oklab, var(--color-ink-inverse) 92%, var(--color-accent) 8%);
+}
+
+.contact-hero-heading {
+  color: var(--color-ink-inverse);
+  text-shadow: 0 2px 16px rgb(45 35 28 / 0.45);
+}
+
+.contact-hero-breadcrumbs {
+  justify-content: flex-end;
+}
+
+@media (min-width: 768px) {
+  .contact-hero-breadcrumbs {
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--radius-sm);
+    background: color-mix(in oklab, var(--color-hero-panel) 72%, transparent);
+  }
+
+  .contact-hero-breadcrumbs ol {
+    justify-content: flex-end;
+  }
+}
+
+/* Shared horizontal inset — aligns form band + value props with hero edges */
+
+.contact-section-inset {
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .contact-section-inset {
+    padding-inline: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .contact-section-inset {
+    padding-inline: 3.5rem;
+  }
+}
+
+/* Form section — reference: screnshots/contact-form-section.png */
+
+.contact-form-section {
+  border-radius: 28px;
+  background-color: color-mix(in oklab, var(--color-surface-sunken) 88%, var(--color-cream) 12%);
+  padding-block: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .contact-form-section {
+    padding-block: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .contact-form-section {
+    padding-block: 3rem;
+  }
+}
+
+.contact-form-card {
+  box-shadow:
+    0 4px 24px rgb(45 45 45 / 0.06),
+    0 1px 3px rgb(45 45 45 / 0.04);
+}
+
+.contact-form .contact-form__input,
+.contact-form [data-slot='input'],
+.contact-form textarea,
+.contact-form .contact-form__select {
+  border-radius: var(--radius-md);
+  border-color: transparent;
+  background-color: var(--color-surface-sunken);
+  font-family: var(--font-body);
+}
+
+.contact-form .contact-form__input:focus,
+.contact-form textarea:focus,
+.contact-form .contact-form__select[data-focus='true'] {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-surface);
+}
+
+.contact-form .contact-form__submit {
+  justify-content: flex-start;
+  border-radius: 9999px;
+  background-color: var(--color-link);
+  color: var(--color-ink-inverse);
+  font-family: var(--font-body);
+  min-height: 3rem;
+  padding-inline: 1.25rem 1.75rem;
+}
+
+.contact-form .contact-form__submit:hover:not(:disabled) {
+  background-color: color-mix(in oklab, var(--color-link) 88%, var(--color-charcoal) 12%);
+}
+
+.contact-form .contact-form__submit:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.contact-form [data-slot='label'] {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+
+/* Value props band */
+
+.contact-value-props {
+  border-top: 1px solid color-mix(in oklab, var(--color-ink-inverse) 8%, transparent);
+}
+
+.contact-value-prop-card {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .contact-value-prop-card:hover {
+    border-color: color-mix(in oklab, var(--color-ink-inverse) 22%, transparent);
+    background-color: color-mix(in oklab, var(--color-ink-inverse) 11%, transparent);
+  }
+}

@@ -237,6 +237,21 @@ export const INGREDIENTS_SLOT: ImageSlot = {
   supplied: true,
 };
 
+/** Contact hero — interim reuses ingredients editorial until A-08 ships. */
+export const CONTACT_HERO_SLOT: ImageSlot = {
+  id: 'contact-hero',
+  src: INGREDIENTS_SLOT.src,
+  alt: 'Pineapple and ginger beside a bottle of Tabasamu Sips in warm window light.',
+  width: 1920,
+  height: 640,
+  aspect: '21/9',
+  sizes: '100vw',
+  textOverlay: 'safe-zone-left',
+  direction:
+    'Contact page hero — bright editorial crop; text legibility from brown overlay, not a dark photo grade.',
+  supplied: true,
+};
+
 export const JOURNAL_SLOT: ImageSlot = {
   id: 'journal-preview',
   src: '/products/journal-1.jpg',
@@ -260,6 +275,7 @@ export const ALL_SLOTS: readonly ImageSlot[] = [
   WHY_CHOOSE_US_SLOT,
   ORIGIN_SLOT,
   INGREDIENTS_SLOT,
+  CONTACT_HERO_SLOT,
   JOURNAL_SLOT,
 ];
 

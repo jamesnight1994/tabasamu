@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Header } from '../../components/layout/Header';
 import { Footer, SkipLink } from '../../components/layout/Footer';
 import { Drawer, ToastProvider } from '../../components/primitives/Overlay';
+import { StorefrontUiProvider } from '../../components/storefront/StorefrontUiProvider';
 import { Button } from '../../components/primitives/Button';
 import { AdapterProvider } from '../../components/commerce/AdapterProvider';
 import { ConsentProvider } from '../../components/analytics/ConsentProvider';
@@ -38,13 +39,15 @@ export default function StorefrontLayout({ children }: { children: React.ReactNo
 
   return (
     <ToastProvider>
-      <ConsentProvider>
-        <AdapterProvider adapters={adapters}>
-          <CartProvider adapters={adapters}>
-            <StorefrontChrome>{children}</StorefrontChrome>
-          </CartProvider>
-        </AdapterProvider>
-      </ConsentProvider>
+      <StorefrontUiProvider>
+        <ConsentProvider>
+          <AdapterProvider adapters={adapters}>
+            <CartProvider adapters={adapters}>
+              <StorefrontChrome>{children}</StorefrontChrome>
+            </CartProvider>
+          </AdapterProvider>
+        </ConsentProvider>
+      </StorefrontUiProvider>
     </ToastProvider>
   );
 }
