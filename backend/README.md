@@ -27,7 +27,7 @@ yarn start:dev
 
 ## Swagger UI
 
-With the API running (`yarn start:dev` or Compose `api` on **3001**):
+With the API running (`yarn start:dev` or Compose `backend-api` on **3001**):
 
 | | URL |
 |---|---|
@@ -112,7 +112,7 @@ Missing or wrong key → **401**.
 Prefer the e2e suite over this README when wiring the admin client:
 
 ```bash
-# Postgres from yarn docker:dev (host :5437). Once:
+# Postgres from yarn docker:compose up (host :5437). Once:
 #   docker exec tabasamu-dev-postgres-1 psql -U tabasamu -d tabasamu -c 'CREATE DATABASE tabasamu_test;'
 cp test/.env.e2e.example test/.env.e2e   # optional
 yarn test:e2e -- test/admin-products.e2e-spec.ts
@@ -123,9 +123,8 @@ See [`test/admin-products.e2e-spec.ts`](./test/admin-products.e2e-spec.ts) for a
 
 ```bash
 # From repo root — storefront is frontend/
-yarn docker:dev     # hot reload · Postgres :5437
-yarn docker:prod    # production images · Postgres :5436
-# or: yarn docker:compose up / yarn docker:compose --prod up --build
+yarn docker:compose up                        # hot reload · Postgres :5437
+yarn docker:compose --prod up --build         # production images · Postgres :5436
 ```
 
-Services: `postgres`, `api` (:3001), `app` (`frontend/` on :3000, `NEXT_PUBLIC_ADAPTERS=http`).
+Services: `postgres`, `backend-api` (:3001), `frontend` (`frontend/` on :3000, `NEXT_PUBLIC_ADAPTERS=http`).

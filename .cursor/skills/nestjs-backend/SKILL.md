@@ -48,6 +48,6 @@ Register new modules in `backend/src/app.module.ts`. Global HTTP prefix is `v1` 
 
 ```bash
 cd backend && yarn prisma:migrate && yarn prisma:seed && yarn start:dev
-# or from repo root: yarn docker:compose up / yarn docker:dev
+# or from repo root: yarn docker:compose up
 curl -s http://localhost:3001/v1/products
 ```

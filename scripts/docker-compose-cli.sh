@@ -4,8 +4,8 @@
 # Usage:
 #   yarn docker:compose up
 #   yarn docker:compose up -d portainer-agent portainer
-#   yarn docker:compose logs -f api
-#   yarn docker:compose restart app
+#   yarn docker:compose logs -f backend-api
+#   yarn docker:compose restart frontend
 #   yarn docker:compose down
 #   yarn docker:compose --prod up -d --build
 #   yarn docker:compose -f prod ps

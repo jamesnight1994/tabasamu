@@ -60,21 +60,11 @@ Primary CLI — forwards to `docker compose` (dev file by default):
 yarn docker:compose up                         # lean stack (Postgres :5437)
 yarn docker:compose up --build                 # rebuild images then start
 yarn docker:compose up -d portainer-agent portainer
-yarn docker:compose logs -f api
-yarn docker:compose restart app
+yarn docker:compose logs -f backend-api
+yarn docker:compose restart frontend
 yarn docker:compose down
 yarn docker:compose --prod up -d --build       # production compose file
 yarn docker:compose --prod down
-```
-
-Shortcuts (same as compose under the hood):
-
-```bash
-yarn docker:dev          # → docker:compose up
-yarn docker:dev --build  # → docker:compose up --build
-yarn docker:dev:down     # → docker:compose down
-yarn docker:prod         # → docker:compose --prod up --build
-yarn docker:prod:down    # → docker:compose --prod down
 ```
 
 Storefront http://localhost:3000 · Nest http://localhost:3001. Medusa stack remains `docker compose up` (separate file).
@@ -84,6 +74,8 @@ If `yarn docker:compose up --build` fails with Yarn `YN0028` (lockfile would be 
 ### Portainer (container GUI — bundled in dev & prod compose)
 
 [Portainer CE](https://www.portainer.io/) is included via `compose/portainer.dev.yml` / `compose/portainer.yml`. The UI talks to a **Portainer Agent** container.
+
+Containers (dev): `postgres`, `backend-api`, `frontend`, `portainer`, `portainer-agent`.
 
 ```bash
 yarn docker:compose up -d portainer-agent portainer   # Portainer only
@@ -113,7 +105,7 @@ Hexagonal / ports-and-adapters under `frontend/src`. UI depends on **typed ports
 | `yarn front:dev` / `front:build` / `front:verify` | Storefront (`frontend/`) |
 | `yarn back:dev` / `back:build` / `back:seed` | NestJS API |
 | `yarn docker:compose …` | `docker compose` against lean stack (dev default; `--prod` for prod) |
-| `yarn docker:dev` / `docker:prod` | Shortcuts for `up` / `up --build` |
+| `yarn portainer:reset` | Wipe Portainer DB + recreate agent endpoint |
 | `yarn medusa …` · `commerce:*` | Medusa under `commerce/` |
 | `yarn docker …` | Run a package.json script inside Docker Compose (Medusa/app) |
 

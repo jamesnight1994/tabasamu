@@ -103,14 +103,13 @@ yarn start:dev   # http://localhost:3001/v1/…
 
 ```bash
 # from repo root
-yarn docker:dev
-# or: yarn docker:compose up
+yarn docker:compose up
 # API :3001 · Postgres :5437 (user/pass/db tabasamu) · storefront :3000
 ```
 
 If host `:3001` is busy: `NEST_HOST_PORT=3011 yarn docker:compose up`.
 
-For arbitrary Compose verbs: `yarn docker:compose restart api`, `yarn docker:compose logs -f api`.
+For arbitrary Compose verbs: `yarn docker:compose restart backend-api`, `yarn docker:compose logs -f backend-api`.
 
 See also [`README.md`](./README.md).
 
