@@ -13,7 +13,7 @@ export function isAdminDevBypassEnabled(): boolean {
 }
 
 /** When bypass is on, admin Nest CRUD uses the same-origin BFF (no client API key). */
-export function useAdminNestBff(): boolean {
+export function shouldUseAdminNestBff(): boolean {
   return isAdminDevBypassEnabled();
 }
 

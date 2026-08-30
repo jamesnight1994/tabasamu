@@ -5,7 +5,7 @@ import { ADMIN_API_PATHS } from './api-paths';
 import {
   isActiveDevBypassSession,
   isDevBypassSession,
-  useAdminNestBff,
+  shouldUseAdminNestBff,
 } from './dev-auth-bypass';
 import { clientEnv } from '../config/env';
 import {
@@ -17,7 +17,7 @@ import {
 const ADMIN_NEST_BFF_BASE = '/api/admin/nest';
 
 const resolveAdminApiBase = (): string => {
-  if (useAdminNestBff()) return ADMIN_NEST_BFF_BASE;
+  if (shouldUseAdminNestBff()) return ADMIN_NEST_BFF_BASE;
   return clientEnv().NEXT_PUBLIC_API_URL || '';
 };
 

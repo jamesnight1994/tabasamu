@@ -26,7 +26,7 @@ function apiCspOrigin(): string | null {
   }
 }
 
-function useHttpsHardening(): boolean {
+function shouldUseHttpsHardening(): boolean {
   const appEnv =
     process.env.TABASAMU_APP_ENV || process.env.NEXT_PUBLIC_APP_ENV || '';
   const isProd =
@@ -45,7 +45,7 @@ function useHttpsHardening(): boolean {
 /** Apply Portainer-updatable CSP / HSTS on the response. */
 function applySecurityHeaders(response: NextResponse): NextResponse {
   const origin = apiCspOrigin();
-  const httpsHardening = useHttpsHardening();
+  const httpsHardening = shouldUseHttpsHardening();
 
   const csp = [
     `default-src 'self'`,

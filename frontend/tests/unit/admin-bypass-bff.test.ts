@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { resetClientEnv } from '../../src/lib/config/env';
 import {
   isAdminDevBypassEnabled,
-  useAdminNestBff,
+  shouldUseAdminNestBff,
   getDevBypassApiKey,
 } from '../../src/lib/admin/dev-auth-bypass';
 import { isNonProductionAppEnv } from '../../src/lib/config/runtime-env';
@@ -33,7 +33,7 @@ describe('admin staging bypass + BFF gate', () => {
   it('enables bypass + BFF when APP_ENV=staging', () => {
     process.env.NEXT_PUBLIC_APP_ENV = 'staging';
     expect(isAdminDevBypassEnabled()).toBe(true);
-    expect(useAdminNestBff()).toBe(true);
+    expect(shouldUseAdminNestBff()).toBe(true);
     expect(getDevBypassApiKey()).toBeNull();
   });
 
@@ -45,7 +45,7 @@ describe('admin staging bypass + BFF gate', () => {
   it('disables bypass when APP_ENV=production', () => {
     process.env.NEXT_PUBLIC_APP_ENV = 'production';
     expect(isAdminDevBypassEnabled()).toBe(false);
-    expect(useAdminNestBff()).toBe(false);
+    expect(shouldUseAdminNestBff()).toBe(false);
   });
 
   it('prefers TABASAMU_APP_ENV over NEXT_PUBLIC_APP_ENV on server', () => {
