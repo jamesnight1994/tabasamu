@@ -47,19 +47,28 @@ import type { NextConfig } from "next";
  * host. So: production-hardening applies when NODE_ENV is production UNLESS
  * APP_ENV explicitly names a non-production environment.
  */
-const appEnv = process.env.NEXT_PUBLIC_APP_ENV;
+/** Prefer Portainer runtime vars; fall back to NEXT_PUBLIC_* for local builds. */
+const appEnv = process.env.TABASAMU_APP_ENV || process.env.NEXT_PUBLIC_APP_ENV;
 const isProd =
   (process.env.NODE_ENV === "production" && appEnv !== "development" && appEnv !== "staging") ||
   appEnv === "production";
 
 /** Only pin / upgrade when the public app URL is HTTPS (real TLS termination). */
-const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "").trim();
+const appUrl = (
+  process.env.TABASAMU_PUBLIC_APP_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  ""
+).trim();
 const isHttpsApp = appUrl.startsWith("https://");
 const useHttpsHardening = isProd && isHttpsApp;
 
-/** Hosted Medusa origin from env (Render, Medusa Cloud, etc.) — for CSP + next/image. */
+/** Hosted API origin — CSP + next/image. Middleware also sets CSP at request time. */
 const apiOrigin = (() => {
-  const raw = (process.env.NEXT_PUBLIC_API_URL || "").trim();
+  const raw = (
+    process.env.TABASAMU_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    ""
+  ).trim();
   if (!raw) return null;
   try {
     return new URL(raw);

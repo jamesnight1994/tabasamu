@@ -3,16 +3,18 @@
  *
  * ⚠ NN-03: NO SECRET EVER ENTERS THE FRONTEND BUNDLE.
  *
- * Only `NEXT_PUBLIC_*` variables are readable by the client. Every payment
- * credential, API secret and webhook signing key is SERVER-ONLY and is
- * accessed exclusively through `serverEnv()`, which throws if called in the
- * browser.
+ * Public config is readable via `clientEnv()`. In Docker/Portainer, values come
+ * from `TABASAMU_*` (written to `/runtime-env.js` at container start). Locally,
+ * `NEXT_PUBLIC_*` from `.env.local` is used.
+ *
+ * Secrets (ADMIN_API_KEY, payment keys, …) are SERVER-ONLY via `serverEnv()`.
  *
  * Verified at build time by `scripts/check-secrets.mjs`, which scans the
  * built bundle for credential-shaped strings and FAILS THE BUILD on a hit.
  */
 
 import { z } from 'zod';
+import { resolvePublicEnv } from './runtime-env';
 
 /* ---------------- client (safe, bundled) ---------------- */
 
@@ -34,15 +36,8 @@ let _client: ClientEnv | null = null;
 
 export const clientEnv = (): ClientEnv => {
   if (_client) return _client;
-  const parsed = clientSchema.safeParse({
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
-    NEXT_PUBLIC_ADAPTERS: process.env.NEXT_PUBLIC_ADAPTERS,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_ANALYTICS_ENABLED: process.env.NEXT_PUBLIC_ANALYTICS_ENABLED,
-    NEXT_PUBLIC_LOG_LEVEL: process.env.NEXT_PUBLIC_LOG_LEVEL,
-  });
+  const resolved = resolvePublicEnv();
+  const parsed = clientSchema.safeParse(resolved);
   if (!parsed.success) {
     throw new Error(`Invalid client environment:\n${parsed.error.message}`);
   }
@@ -55,9 +50,8 @@ export const usingMocks = (): boolean => clientEnv().NEXT_PUBLIC_ADAPTERS === 'm
 
 /**
  * ⚠ TEST-ONLY. Clears the memoised client env so a test can vary a
- *   `NEXT_PUBLIC_*` value (e.g. toggling analytics on) and have the next
- *   `clientEnv()` re-read `process.env`. Never called in application code —
- *   the cache is correct at runtime, where env is fixed for the process.
+ *   `NEXT_PUBLIC_*` / `TABASAMU_*` value and have the next `clientEnv()`
+ *   re-read. Never called in application code.
  */
 export const resetClientEnv = (): void => {
   _client = null;

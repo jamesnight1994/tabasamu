@@ -1,0 +1,48 @@
+# PR verification — frontend lint/typecheck/tests; backend unit tests.
+
+name: Verify
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Enable Corepack (Yarn 4)
+        run: corepack enable
+      - name: Install
+        run: yarn install --immutable
+      - name: Verify
+        run: yarn verify
+
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Enable Corepack (Yarn 4)
+        run: corepack enable
+      - name: Install
+        run: yarn install --immutable
+      - name: Unit tests
+        run: yarn test
+        # e2e needs Postgres; skip in PR verify unless a service is added later

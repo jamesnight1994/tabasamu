@@ -5,20 +5,21 @@
 
 import { AppError, appError } from '../../lib/errors';
 import { clientEnv } from '../../lib/config/env';
+import { resolveNestApiUrl } from '../../lib/config/runtime-env';
 
 export type NestJson = Record<string, unknown>;
 
 const baseUrl = (): string => {
   if (typeof window === 'undefined') {
-    const serverUrl = process.env.NEST_API_URL || process.env.NEXT_PUBLIC_API_URL;
-    if (serverUrl) return serverUrl.replace(/\/$/, '');
+    const serverUrl = resolveNestApiUrl();
+    if (serverUrl) return serverUrl;
   }
   const url = clientEnv().NEXT_PUBLIC_API_URL;
   if (!url) {
     throw new AppError(
       'SERVER',
       'The commerce API URL is not configured.',
-      new Error('NEXT_PUBLIC_API_URL / NEST_API_URL missing')
+      new Error('NEXT_PUBLIC_API_URL / NEST_API_URL / TABASAMU_PUBLIC_API_URL missing')
     );
   }
   return url.replace(/\/$/, '');

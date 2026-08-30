@@ -86,6 +86,28 @@ yarn docker:compose --prod up -d portainer-agent portainer
 
 UI: **https://localhost:9443** — dev credentials: `admin` / `tabasamu-dev` (see `compose/portainer-dev-admin.password`).
 
+### Runtime config (Portainer — no rebuild)
+
+Prod/VM public config uses **`TABASAMU_*`** env vars (not baked `NEXT_PUBLIC_*`). On container start the frontend entrypoint writes `/runtime-env.js`.
+
+| You want to… | Do this |
+|---|---|
+| Change any config var | Portainer → container env → **Recreate** |
+| Rotate `ADMIN_API_KEY` | Update on **backend-api** + **frontend** → Recreate both |
+| Staging ↔ production mode | `TABASAMU_APP_ENV=staging` or `production` → Recreate frontend |
+| Deploy new code | CI push or `yarn docker:compose --prod up -d --build` |
+
+Template: [`compose/.env.prod.example`](compose/.env.prod.example) → copy to `/opt/tabasamu/.env` on the VM.
+
+**Staging admin testing:** `TABASAMU_APP_ENV=staging` enables login bypass; Nest admin calls go through `/api/admin/nest` (server injects `ADMIN_API_KEY`). Never put the API key in `NEXT_PUBLIC_*`.
+
+### Deploy (VM)
+
+```bash
+yarn deploy:vm          # git pull + compose up --build + smoke (on the server)
+# or via GitHub Actions on push to main (see .github/workflows/deploy-vm.yml)
+```
+
 ## Verification (storefront)
 
 ```bash
@@ -106,6 +128,8 @@ Hexagonal / ports-and-adapters under `frontend/src`. UI depends on **typed ports
 | `yarn back:dev` / `back:build` / `back:seed` | NestJS API |
 | `yarn docker:compose …` | `docker compose` against lean stack (dev default; `--prod` for prod) |
 | `yarn portainer:reset` | Wipe Portainer DB + recreate agent endpoint |
+| `yarn deploy:vm` / `smoke:vm` | Pull + rebuild prod stack / HTTP smoke checks |
+| `yarn server:ssh` | SSH to deployment VM |
 | `yarn medusa …` · `commerce:*` | Medusa under `commerce/` |
 | `yarn docker …` | Run a package.json script inside Docker Compose (Medusa/app) |
 

@@ -33,6 +33,7 @@ yarn-error.log*
 !.env.example
 !**/.env.example
 !.env.ssh.example
+!compose/.env.prod.example
 .env.ssh
 
 # vercel

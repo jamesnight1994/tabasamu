@@ -3,23 +3,47 @@ import { AdminApiError } from './admin-api-error';
 import { adminAuthClient } from './auth-client';
 import { ADMIN_API_PATHS } from './api-paths';
 import {
-  getDevBypassApiKey,
   isActiveDevBypassSession,
   isDevBypassSession,
+  useAdminNestBff,
 } from './dev-auth-bypass';
+import { clientEnv } from '../config/env';
 import {
   extractApiErrorMessage,
   isAuthExpiredError,
   looksLikeAuthFailureMessage,
 } from './extract-api-error';
 
-const serverUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
-const authServerUrl = process.env.NEXT_PUBLIC_ADMIN_AUTH_URL ?? serverUrl;
+const ADMIN_NEST_BFF_BASE = '/api/admin/nest';
+
+const resolveAdminApiBase = (): string => {
+  if (useAdminNestBff()) return ADMIN_NEST_BFF_BASE;
+  return clientEnv().NEXT_PUBLIC_API_URL || '';
+};
+
+const resolveAuthApiBase = (): string => {
+  // Auth login still hits legacy auth service when bypass is off.
+  if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_ADMIN_AUTH_URL) {
+    return process.env.NEXT_PUBLIC_ADMIN_AUTH_URL;
+  }
+  return resolveAdminApiBase();
+};
 
 export const AUTH_SESSION_EXPIRED_EVENT = 'admin:auth:session-expired';
 
-export const axiosApi = axios.create({ baseURL: serverUrl, timeout: 15_000 });
-export const authAxiosApi = axios.create({ baseURL: authServerUrl, timeout: 15_000 });
+export const axiosApi = axios.create({
+  baseURL: typeof window === 'undefined' ? '' : resolveAdminApiBase(),
+  timeout: 15_000,
+});
+export const authAxiosApi = axios.create({
+  baseURL: typeof window === 'undefined' ? '' : resolveAuthApiBase(),
+  timeout: 15_000,
+});
+
+const ensureBases = () => {
+  axiosApi.defaults.baseURL = resolveAdminApiBase();
+  authAxiosApi.defaults.baseURL = resolveAuthApiBase();
+};
 
 let isRedirectingToLogin = false;
 
@@ -45,13 +69,11 @@ const configBearerHeader = () => {
 };
 
 export const applyAuthHeaders = () => {
+  ensureBases();
   if (isActiveDevBypassSession(adminAuthClient.getAuthToken())) {
+    // BFF injects X-Admin-Api-Key — never put the key in the browser.
     clearBearerHeaders();
-    const key = getDevBypassApiKey();
     clearAdminApiKeyHeader();
-    if (key) {
-      axiosApi.defaults.headers.common['X-Admin-Api-Key'] = key;
-    }
     return;
   }
 
@@ -127,6 +149,7 @@ const handleResponseError = (err: unknown) => {
 const returnApiResponse = <T>(response: { data?: T }): T => (response?.data ?? {}) as T;
 
 const createAuthRecord = async <T>(path: string, data: unknown): Promise<T> => {
+  ensureBases();
   clearAuthHeaders();
   const response = await authAxiosApi.post(path, data, {
     validateStatus: (s) => s >= 200 && s < 300,

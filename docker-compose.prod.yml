@@ -1,9 +1,12 @@
 # Production-style stack — Nest API + Postgres + Next storefront (`frontend/`).
 #
 # Usage:
-#   yarn docker:compose --prod up --build
+#   yarn docker:compose --prod up -d --build
 #
-# Storefront / admin: http://localhost:3000  (ADAPTERS=http → Nest)
+# Config is runtime (TABASAMU_* / ADMIN_API_KEY). After editing env in Portainer
+# or `/opt/tabasamu/.env`, Recreate the container — no rebuild for config-only changes.
+#
+# Storefront / admin: http://localhost:3000
 # Nest API:           http://localhost:3001/v1/products  · Swagger /docs
 # Postgres:           localhost:5436  (db/user/pass: tabasamu)
 # Portainer:          https://localhost:9443
@@ -53,27 +56,22 @@ services:
     build:
       context: ./frontend
       target: runner
-      args:
-        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
-        NEXT_PUBLIC_APP_ENV: ${NEXT_PUBLIC_APP_ENV:-production}
-        NEXT_PUBLIC_ADAPTERS: ${NEXT_PUBLIC_ADAPTERS:-http}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
-        NEXT_PUBLIC_ANALYTICS_ENABLED: ${NEXT_PUBLIC_ANALYTICS_ENABLED:-false}
-        NEXT_PUBLIC_LOG_LEVEL: ${NEXT_PUBLIC_LOG_LEVEL:-info}
     ports:
       - "3000:3000"
-    env_file:
-      - path: frontend/.env.example
-        required: false
-      - path: frontend/.env.local
-        required: false
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
-      NEXT_PUBLIC_ADAPTERS: ${NEXT_PUBLIC_ADAPTERS:-http}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      # Runtime public config (entrypoint → /runtime-env.js). Portainer-updatable.
+      TABASAMU_APP_ENV: ${TABASAMU_APP_ENV:-staging}
+      TABASAMU_PUBLIC_APP_URL: ${TABASAMU_PUBLIC_APP_URL:-http://localhost:3000}
+      TABASAMU_PUBLIC_API_URL: ${TABASAMU_PUBLIC_API_URL:-http://localhost:3001}
+      TABASAMU_ADAPTERS: ${TABASAMU_ADAPTERS:-http}
+      TABASAMU_ANALYTICS_ENABLED: ${TABASAMU_ANALYTICS_ENABLED:-false}
+      TABASAMU_LOG_LEVEL: ${TABASAMU_LOG_LEVEL:-info}
+      # Server-only — admin BFF injects X-Admin-Api-Key
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-dev-admin-key-change-me}
       NEST_API_URL: http://backend-api:3001
     depends_on:
       - backend-api

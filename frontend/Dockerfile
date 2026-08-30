@@ -30,10 +30,11 @@ ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build-time public env (overridable via --build-arg / compose).
+# Build-time defaults only — real public config is injected at container start
+# via TABASAMU_* → /runtime-env.js (Portainer-updatable without rebuild).
 ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
 ARG NEXT_PUBLIC_APP_ENV=production
-ARG NEXT_PUBLIC_ADAPTERS=mock
+ARG NEXT_PUBLIC_ADAPTERS=http
 ARG NEXT_PUBLIC_API_URL=
 ARG NEXT_PUBLIC_ANALYTICS_ENABLED=false
 ARG NEXT_PUBLIC_LOG_LEVEL=info
@@ -59,7 +60,11 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY docker-entrypoint.prod.sh /usr/local/bin/docker-entrypoint.prod.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.prod.sh \
+  && chown -R nextjs:nodejs /app/public
 
 USER nextjs
 EXPOSE 3000
+ENTRYPOINT ["docker-entrypoint.prod.sh"]
 CMD ["node", "server.js"]

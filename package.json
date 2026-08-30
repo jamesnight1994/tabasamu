@@ -24,6 +24,8 @@
     "docker:medusa": "./scripts/docker-yarn.sh -s medusa",
     "docker:compose": "./scripts/docker-compose-cli.sh",
     "portainer:reset": "./scripts/portainer-reset.sh",
-    "server:ssh": "./scripts/ssh-server.sh"
+    "server:ssh": "./scripts/ssh-server.sh",
+    "deploy:vm": "./scripts/deploy-vm.sh",
+    "smoke:vm": "./scripts/smoke-vm.sh"
   }
 }

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import { rootMetadata, organizationJsonLd } from '../lib/seo';
 import { websiteJsonLd, jsonLdString } from '../lib/seo/structured-data';
 import './globals.css';
@@ -39,6 +40,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="font/woff2"
           crossOrigin="anonymous"
         />
+        {/* Docker/Portainer: written at container start from TABASAMU_* env. */}
+        <Script src="/runtime-env.js" strategy="beforeInteractive" />
         {/* ⚠ Serialised via `jsonLdString`, which applies the `</script>`
             breakout-safe escape centrally — never a bare `JSON.stringify`
             here. [S-3] */}

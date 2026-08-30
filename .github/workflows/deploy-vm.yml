@@ -1,0 +1,36 @@
+# Deploy Tabasamu to the VM via SSH.
+# Secrets (Settings → Secrets): VM_SSH_HOST, VM_SSH_USER, VM_SSH_KEY
+# Optional: VM_DEPLOY_PATH (default /opt/tabasamu)
+#
+# Config/secrets live on the VM (.env / Portainer). This workflow only pulls
+# code and rebuilds images — it does not echo ADMIN_API_KEY.
+
+name: Deploy VM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VM_SSH_HOST }}
+          username: ${{ secrets.VM_SSH_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          command_timeout: 40m
+          script: |
+            set -euo pipefail
+            DEPLOY_PATH="${{ secrets.VM_DEPLOY_PATH }}"
+            DEPLOY_PATH="${DEPLOY_PATH:-/opt/tabasamu}"
+            cd "$DEPLOY_PATH"
+            git fetch origin main
+            git checkout main
+            git pull origin main
+            docker compose -f docker-compose.prod.yml up -d --build
+            SMOKE_HOST=127.0.0.1 ./scripts/smoke-vm.sh

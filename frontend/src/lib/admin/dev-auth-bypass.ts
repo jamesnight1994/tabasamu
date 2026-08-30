@@ -1,11 +1,20 @@
+import { clientEnv } from '../config/env';
+import { isNonProductionAppEnv } from '../config/runtime-env';
+
 export const DEV_BYPASS_TOKEN = '__admin_dev_bypass__';
 
+/**
+ * Admin login bypass for local + staging VM testing.
+ * Gated by APP_ENV only (development | staging). Production never enables this.
+ * Nest admin calls go through /api/admin/nest (BFF) — API key stays server-side.
+ */
 export function isAdminDevBypassEnabled(): boolean {
-  return (
-    process.env.NEXT_PUBLIC_APP_ENV === 'development' &&
-    process.env.NEXT_PUBLIC_ADMIN_AUTH_BYPASS === 'true' &&
-    Boolean(process.env.NEXT_PUBLIC_ADMIN_API_KEY?.trim())
-  );
+  return isNonProductionAppEnv(clientEnv().NEXT_PUBLIC_APP_ENV);
+}
+
+/** When bypass is on, admin Nest CRUD uses the same-origin BFF (no client API key). */
+export function useAdminNestBff(): boolean {
+  return isAdminDevBypassEnabled();
 }
 
 export function isDevBypassSession(token: string | null | undefined): boolean {
@@ -21,9 +30,9 @@ export function buildDevBypassStaff(email: string) {
   };
 }
 
+/** @deprecated Client never holds ADMIN_API_KEY — BFF injects it. Always null. */
 export function getDevBypassApiKey(): string | null {
-  if (!isAdminDevBypassEnabled()) return null;
-  return process.env.NEXT_PUBLIC_ADMIN_API_KEY!.trim();
+  return null;
 }
 
 export function isActiveDevBypassSession(token: string | null | undefined): boolean {
