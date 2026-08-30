@@ -30,12 +30,12 @@ ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build-time defaults only — real public config is injected at container start
+# Build-time placeholders only — real public config is injected at container start
 # via TABASAMU_* → /runtime-env.js (Portainer-updatable without rebuild).
 ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
-ARG NEXT_PUBLIC_APP_ENV=production
+ARG NEXT_PUBLIC_APP_ENV=staging
 ARG NEXT_PUBLIC_ADAPTERS=http
-ARG NEXT_PUBLIC_API_URL=
+ARG NEXT_PUBLIC_API_URL=http://localhost:3001
 ARG NEXT_PUBLIC_ANALYTICS_ENABLED=false
 ARG NEXT_PUBLIC_LOG_LEVEL=info
 
@@ -44,7 +44,8 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     NEXT_PUBLIC_ADAPTERS=$NEXT_PUBLIC_ADAPTERS \
     NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_ANALYTICS_ENABLED=$NEXT_PUBLIC_ANALYTICS_ENABLED \
-    NEXT_PUBLIC_LOG_LEVEL=$NEXT_PUBLIC_LOG_LEVEL
+    NEXT_PUBLIC_LOG_LEVEL=$NEXT_PUBLIC_LOG_LEVEL \
+    NEST_API_URL=http://localhost:3001
 
 RUN yarn build
 
