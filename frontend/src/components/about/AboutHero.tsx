@@ -1,5 +1,5 @@
-import { CONTACT_PAGE } from '../../content/contact';
-import { CONTACT_HERO_SLOT } from '../../content/image-slots';
+import { ABOUT_PAGE } from '../../content/about';
+import { ABOUT_HERO_SLOT } from '../../content/image-slots';
 import { ScrollReveal } from '@/components/motion/ScrollReveal';
 import { SlotImage } from '../editorial/SlotImage';
 import { SeoBreadcrumbs } from '../seo/StructuredData';
@@ -10,21 +10,21 @@ const SITE_CONTAINER =
 
 const BREADCRUMB_TRAIL = [
   { name: 'Home', path: '/' },
-  { name: CONTACT_PAGE.hero.title, path: '/contact' },
+  { name: ABOUT_PAGE.hero.title, path: '/about' },
 ] as const;
 
-export function ContactHero() {
-  const { eyebrow, title } = CONTACT_PAGE.hero;
+export function AboutHero() {
+  const { eyebrow, title } = ABOUT_PAGE.hero;
 
   return (
     <section
-      aria-labelledby="contact-hero-heading"
+      aria-labelledby="about-hero-heading"
       data-ground="dark"
-      className="contact-hero relative min-h-[clamp(12rem,32vh,22rem)] overflow-hidden"
+      className="about-hero relative min-h-[clamp(12rem,32vh,22rem)] overflow-hidden"
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-        <SlotImage slot={CONTACT_HERO_SLOT} fill rounded={false} priority className="size-full" />
-        <div className="contact-hero-overlay absolute inset-0 z-[1]" />
+        <SlotImage slot={ABOUT_HERO_SLOT} fill rounded={false} priority className="size-full" />
+        <div className="about-hero-overlay absolute inset-0 z-[1]" />
       </div>
 
       <div
@@ -40,11 +40,11 @@ export function ContactHero() {
             y={14}
             className="flex flex-col gap-1.5 md:relative md:min-h-[1.75rem] md:flex-row md:items-start md:justify-between"
           >
-            <p className="contact-hero-eyebrow label-caps !pb-1">{eyebrow}</p>
+            <p className="about-hero-eyebrow label-caps pb-1!">{eyebrow}</p>
             <SeoBreadcrumbs
               trail={BREADCRUMB_TRAIL}
               className={cn(
-                'contact-hero-breadcrumbs md:absolute md:right-0 md:top-0',
+                'about-hero-breadcrumbs md:absolute md:right-0 md:top-0',
                 '[&_a]:font-semibold [&_a]:text-[color-mix(in_oklab,var(--color-ink-inverse)_70%,transparent)]',
                 '[&_a]:underline [&_a]:decoration-[color-mix(in_oklab,var(--color-ink-inverse)_42%,transparent)]',
                 '[&_a]:underline-offset-[0.22em]',
@@ -59,8 +59,8 @@ export function ContactHero() {
 
           <ScrollReveal immediate delay={0.1} y={20}>
             <h1
-              id="contact-hero-heading"
-              className="-mt-3 pb-5 contact-hero-heading max-w-[14ch] font-display text-[length:--text-h2] leading-[--leading-tight] tracking-[--tracking-hero] md:text-[length:--text-hero]"
+              id="about-hero-heading"
+              className="-mt-3 pb-5 about-hero-heading max-w-[14ch] font-display text-[length:--text-h2] leading-[--leading-tight] tracking-[--tracking-hero] md:text-[length:--text-hero]"
             >
               {title}
             </h1>

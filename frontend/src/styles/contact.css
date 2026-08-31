@@ -137,13 +137,90 @@
   border-top: 1px solid color-mix(in oklab, var(--color-ink-inverse) 8%, transparent);
 }
 
+.contact-value-props-grid {
+  align-items: stretch;
+}
+
+@media (min-width: 768px) {
+  .contact-value-props-grid {
+    grid-auto-rows: 1fr;
+  }
+}
+
 .contact-value-prop-card {
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  height: 100%;
+  min-height: 100%;
+  padding: 1.125rem 1.125rem 1rem;
+  border-radius: 0.875rem;
+  border: 1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
+  background-color: var(--color-surface);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.contact-value-prop-card__step {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.8vw, 1.875rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.contact-value-prop-card__title {
+  margin-top: 0.625rem;
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  color: var(--color-ink);
+}
+
+.contact-value-prop-card__body {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+}
+
+.contact-value-prop-card__icon-wrap {
+  margin-top: auto;
+  padding-top: 0.875rem;
+}
+
+.contact-value-prop-card__icon {
+  width: 1.875rem;
+  height: 1.875rem;
+  color: var(--color-link);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .contact-value-prop-card {
+    padding: 1.25rem 1.25rem 1.125rem;
+  }
+
+  .contact-value-prop-card__body {
+    font-size: 0.875rem;
+  }
+
+  .contact-value-prop-card__icon {
+    width: 2rem;
+    height: 2rem;
+  }
 }
 
 @media (hover: hover) {
   .contact-value-prop-card:hover {
-    border-color: color-mix(in oklab, var(--color-ink-inverse) 22%, transparent);
-    background-color: color-mix(in oklab, var(--color-ink-inverse) 11%, transparent);
+    border-color: color-mix(in oklab, var(--color-link) 28%, var(--color-border));
+    box-shadow: 0 8px 22px rgb(45 35 28 / 0.06);
+    transform: translateY(-1px);
+  }
+
+  .contact-value-prop-card:hover .contact-value-prop-card__icon {
+    color: var(--color-accent);
+    transform: translateY(-1px);
   }
 }

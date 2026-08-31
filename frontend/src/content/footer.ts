@@ -110,8 +110,7 @@ export const FOOTER_NAV = {
   discover: {
     heading: 'Discover',
     links: [
-      { href: '/our-story', label: 'Our Story' },
-      { href: '/ingredients', label: 'Ingredients' },
+      { href: '/about', label: 'About us' },
       { href: '/contact', label: 'Contact' },
     ],
   },

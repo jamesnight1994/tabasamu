@@ -104,8 +104,7 @@ export const NAV_MENU: readonly NavEntry[] = [
       { href: '/catalogue', label: 'Catalogue' },
     ],
   },
-  { href: '/our-story', label: 'Our Story' },
-  { href: '/ingredients', label: 'Ingredients' },
+  { href: '/about', label: 'About us' },
   {
     href: '/stockists',
     label: 'Stockists',

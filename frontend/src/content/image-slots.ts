@@ -252,6 +252,21 @@ export const CONTACT_HERO_SLOT: ImageSlot = {
   supplied: true,
 };
 
+/** About hero — interim reuses contact editorial until A-08 ships. */
+export const ABOUT_HERO_SLOT: ImageSlot = {
+  id: 'about-hero',
+  src: CONTACT_HERO_SLOT.src,
+  alt: 'Pineapple and ginger beside a bottle of Tabasamu Sips in warm window light.',
+  width: 1920,
+  height: 640,
+  aspect: '21/9',
+  sizes: '100vw',
+  textOverlay: 'safe-zone-left',
+  direction:
+    'About page hero — same warm editorial crop and brown overlay system as contact.',
+  supplied: true,
+};
+
 export const JOURNAL_SLOT: ImageSlot = {
   id: 'journal-preview',
   src: '/products/journal-1.jpg',
@@ -276,6 +291,7 @@ export const ALL_SLOTS: readonly ImageSlot[] = [
   ORIGIN_SLOT,
   INGREDIENTS_SLOT,
   CONTACT_HERO_SLOT,
+  ABOUT_HERO_SLOT,
   JOURNAL_SLOT,
 ];
 

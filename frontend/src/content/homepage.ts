@@ -75,7 +75,7 @@ export const HERO = {
     'A rooibos base, fermented in small batches and finished with fruit grown here. No caffeine, and nothing to recover from.',
 
   primaryCta: { label: 'Shop the range', href: '/shop' },
-  secondaryCta: { label: 'How its made', href: '/our-story' },
+  secondaryCta: { label: 'How its made', href: '/about#story' },
 } as const;
 
 export const PROPOSITION = {
@@ -110,7 +110,7 @@ export const INGREDIENTS = {
   eyebrow: 'What goes in',
   title: 'Fruit first, then patience.',
   body: 'Every bottle starts the same way: rooibos, steeped and cooled, then fermented with a culture we have kept alive since the first kitchen batch. The fruit goes in last, once the ferment has done its work, which is why the flavour still tastes like the fruit and not like the fermentation.',
-  cta: { label: 'Read the full process', href: '/ingredients' },
+  cta: { label: 'Read the full process', href: '/about#ingredients' },
 } as const;
 
 /**
@@ -120,7 +120,7 @@ export const INGREDIENTS = {
 export const SUBSCRIBE_SECTION = {
   heroHeadline: 'Fruit first, then patience.',
   heroPrimaryCta: { label: 'See products', href: '/shop' },
-  heroSecondaryCta: { label: 'Read ingredients', href: '/ingredients' },
+  heroSecondaryCta: { label: 'Read ingredients', href: '/about#ingredients' },
   newsletterLine1: 'Subscribe to our newsletter and',
   newsletterLine2Accent: 'hear when we restock',
   emailPlaceholder: 'Your email',
@@ -131,7 +131,7 @@ export const SUBSCRIBE_SECTION = {
  * Homepage "Why choose us" band — layout reference: screnshots/why-choose-us.png
  *
  * Uses the same facts as PROPOSITION, presented as an accordion with media
- * on the left. Process steps live on /ingredients and /our-story.
+ * on the left. Process steps live on `/about`.
  */
 export const WHY_CHOOSE_US = {
   titleLead: 'Why',
@@ -141,7 +141,7 @@ export const WHY_CHOOSE_US = {
     'Three facts about what goes into every bottle — a caffeine-free base, batches small enough to taste, and fruit grown here.',
   mediaCaption: 'See where it is brewed',
   mediaCtaLabel: 'Our Story',
-  mediaHref: '/our-story',
+  mediaHref: '/about#story',
   /** Second panel open on first paint — matches the reference layout. */
   defaultOpen: 'small-batches',
   points: [
@@ -163,7 +163,7 @@ export const WHY_CHOOSE_US = {
   ],
 } as const;
 
-/** @deprecated Use WHY_CHOOSE_US — kept for story/ingredients routes if needed later. */
+/** @deprecated Use WHY_CHOOSE_US — process copy lives on `/about`. */
 export const PROCESS = {
   eyebrow: 'How it is made',
   title: 'Four steps, and a wait.',
@@ -211,7 +211,7 @@ export const ORIGIN = {
     'Rooibos was the answer to the caffeine. The fruit was the answer to everything else — and the fruit was already here, at the market, better than anything that could be shipped in.',
     'The batches got bigger. The kitchen did not.',
   ],
-  cta: { label: 'The whole story', href: '/our-story' },
+  cta: { label: 'The whole story', href: '/about#story' },
 } as const;
 
 export const SUBSCRIPTION = {

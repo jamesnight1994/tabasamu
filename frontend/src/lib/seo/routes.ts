@@ -39,8 +39,7 @@ export interface PublicRoute {
 export const PUBLIC_ROUTES: readonly PublicRoute[] = [
   { path: '/', label: 'Home', changeFrequency: 'weekly', priority: 1.0 },
   { path: '/shop', label: 'Shop', changeFrequency: 'daily', priority: 0.9 },
-  { path: '/our-story', label: 'Our Story', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/ingredients', label: 'Ingredients', changeFrequency: 'monthly', priority: 0.7 },
+  { path: '/about', label: 'About us', changeFrequency: 'monthly', priority: 0.7 },
   {
     path: '/stockists',
     label: 'Stockists',

@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 
 import * as trust from '../../src/content/trust';
 import { FAQS } from '../../src/content/faqs';
+import { ABOUT_PAGE } from '../../src/content/about';
 import { OUR_STORY, INGREDIENTS_PAGE } from '../../src/content/story';
 import {
   faqJsonLd,
@@ -30,6 +31,7 @@ import {
 import { setAnalyticsSink, setAnalyticsConsent, track } from '../../src/lib/analytics';
 import { resetClientEnv } from '../../src/lib/config/env';
 import { footerAllLinks } from '../../src/content/footer';
+import { NAV_MENU } from '../../src/content/navigation';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -47,6 +49,7 @@ const collectStrings = (v: unknown, out: string[] = []): string[] => {
 const newContentStrings = (): string[] => [
   ...collectStrings(trust.TRUST_PAGES),
   ...collectStrings(FAQS),
+  ...collectStrings(ABOUT_PAGE),
   ...collectStrings(OUR_STORY),
   ...collectStrings(INGREDIENTS_PAGE),
 ];
@@ -265,6 +268,26 @@ describe('Phase 8 analytics — track() is gated', () => {
  * ================================================================== */
 
 describe('Phase 8 trust — route integrity', () => {
+  it('about us is the canonical brand story route', () => {
+    expect(PUBLIC_ROUTES.some((r) => r.path === '/about')).toBe(true);
+    expect(PUBLIC_ROUTES.some((r) => r.path === '/our-story')).toBe(false);
+    expect(PUBLIC_ROUTES.some((r) => r.path === '/ingredients')).toBe(false);
+  });
+
+  it('primary nav links to about us once', () => {
+    const aboutLinks = NAV_MENU.filter((entry) => entry.href === '/about');
+    expect(aboutLinks).toHaveLength(1);
+    expect(aboutLinks[0]?.label).toBe('About us');
+    expect(NAV_MENU.some((entry) => entry.href === '/our-story')).toBe(false);
+    expect(NAV_MENU.some((entry) => entry.href === '/ingredients')).toBe(false);
+  });
+
+  it('legacy story routes still resolve to redirect pages', () => {
+    const storefront = resolve(__dirname, '../../src/app/(storefront)');
+    expect(existsSync(resolve(storefront, 'our-story/page.tsx'))).toBe(true);
+    expect(existsSync(resolve(storefront, 'ingredients/page.tsx'))).toBe(true);
+  });
+
   it('every trust content page has a matching public route', () => {
     for (const page of trust.TRUST_PAGES) {
       const match = PUBLIC_ROUTES.find((r) => r.path === `/${page.slug}`);
