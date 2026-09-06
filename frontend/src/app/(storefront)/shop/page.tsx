@@ -10,7 +10,8 @@ import {
   matchesFilters,
 } from '../../../domain/catalogue/query';
 import { type Inventory, isPurchasable } from '../../../domain/catalogue';
-import { ShopGrid } from '../../../components/shop/ShopGrid';
+import { ShopPage } from '../../../components/shop/ShopPage';
+import { SHOP_PAGE } from '../../../content/shop';
 
 /**
  * SHOP — a SERVER COMPONENT that reads its query from the URL.
@@ -36,18 +37,16 @@ import { ShopGrid } from '../../../components/shop/ShopGrid';
  */
 
 export const metadata: Metadata = pageMeta({
-  // ✅ D-13 answered — the descriptor may now appear in the title.
-  title: 'Shop — caffeine-free rooibos kombucha',
-  description:
-    'Six flavours of small-batch rooibos kombucha, brewed in Nairobi and finished with Kenyan fruit. One litre, no caffeine.',
+  title: SHOP_PAGE.meta.title,
+  description: SHOP_PAGE.meta.description,
   path: '/shop',
 });
 
-interface ShopPageProps {
+interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function ShopPage({ searchParams }: ShopPageProps) {
+export default async function Page({ searchParams }: PageProps) {
   const raw = await searchParams;
 
   // Next hands back `string | string[]`. Flatten it — a repeated `?q=a&q=b`
@@ -115,7 +114,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   ).length;
 
   return (
-    <ShopGrid
+    <ShopPage
       result={result}
       inventory={inventory}
       flavourFacets={flavours}

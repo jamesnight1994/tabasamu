@@ -24,24 +24,36 @@
  */
 
 import { useRouter, usePathname } from 'next/navigation';
-import { useState, useEffect, useTransition, useId } from 'react';
+import { useState, useTransition, useId } from 'react';
+import { Checkbox, Label, ListBox, Select } from '@heroui/react';
+import { X } from 'lucide-react';
 import { Button } from '../primitives/Button';
-import { Input, Checkbox } from '../primitives/Form';
 import { Drawer } from '../primitives/Overlay';
 import { FlavourSwatch } from '../commerce/Price';
+import { SHOP_PAGE } from '../../content/shop';
 import {
   type CatalogueQuery,
   type Facet,
   type SortOption,
   SORT_OPTIONS,
   SORT_LABELS,
-  serialiseQuery,
   hasActiveFilters,
   activeFilterCount,
   EMPTY_QUERY,
+  serialiseQuery,
 } from '../../domain/catalogue/query';
 import { FLAVOUR_STRIPS, type FlavourSlug, type SizeCode } from '../../domain/catalogue';
 import { cn } from '../../lib/utils/cn';
+
+/** Storefront teal — same family as consent CTAs, not HeroUI default blue. */
+const FLAVOUR_CHECKBOX =
+  '[--accent:#3a9d7a] [--accent-foreground:#fff] w-full';
+
+/** Sort options shown in the toolbar — default catalogue order is the empty placeholder. */
+const SORT_MENU_OPTIONS = SORT_OPTIONS.filter((o) => o !== 'featured').map((value) => ({
+  value,
+  label: SORT_LABELS[value],
+}));
 
 export interface ShopFiltersProps {
   query: CatalogueQuery;
@@ -77,67 +89,6 @@ const useQueryWriter = (query: CatalogueQuery) => {
 };
 
 /* ================================================================== *
- * SEARCH
- * ================================================================== */
-
-function SearchField({ query }: { query: CatalogueQuery }) {
-  const { write } = useQueryWriter(query);
-  const [value, setValue] = useState(query.search);
-  const id = useId();
-
-  // Keep in step when the URL changes underneath us (back button, clear-all).
-  useEffect(() => setValue(query.search), [query.search]);
-
-  /**
-   * ⚠ DEBOUNCED. Writing to the URL on every keystroke would push a history
-   *   entry per character — and the back button would then walk backwards
-   *   through "g", "gr", "gra"… 250ms is below the threshold where typing feels
-   *   laggy, and well above the rate at which people type.
-   */
-  useEffect(() => {
-    if (value === query.search) return;
-    const t = setTimeout(() => write({ search: value }), 250);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="label-caps text-[--color-ink-muted]">
-        Search
-      </label>
-      <div className="relative">
-        <Input
-          id={id}
-          type="search"
-          inputMode="search"
-          placeholder="Flavour, name…"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="pr-10"
-        />
-        {value && (
-          <button
-            type="button"
-            onClick={() => setValue('')}
-            aria-label="Clear search"
-            className={cn(
-              'absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center',
-              'rounded-[--radius-sm] text-[--color-ink-muted]',
-              'hover:bg-[--color-surface-sunken] focus-visible:outline-2 focus-visible:outline-[--color-focus]'
-            )}
-          >
-            <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3 fill-none stroke-current">
-              <path d="M3.5 3.5l9 9m0-9l-9 9" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ================================================================== *
  * FACET GROUPS
  * ================================================================== */
 
@@ -150,154 +101,114 @@ function FlavourFacets({
 }) {
   const { write } = useQueryWriter(query);
 
-  const toggle = (slug: FlavourSlug) => {
-    const next = query.flavours.includes(slug)
-      ? query.flavours.filter((f) => f !== slug)
-      : [...query.flavours, slug];
+  const setFlavour = (slug: FlavourSlug, selected: boolean) => {
+    const next = selected
+      ? query.flavours.includes(slug)
+        ? query.flavours
+        : [...query.flavours, slug]
+      : query.flavours.filter((f) => f !== slug);
     write({ flavours: next });
   };
 
   return (
-    <fieldset className="flex flex-col gap-3">
-      <legend className="label-caps mb-1 text-[--color-ink-muted]">Flavour</legend>
+    <fieldset className="m-0 min-w-0 border-0 p-0">
+      <legend className="sr-only">{SHOP_PAGE.catalogue.flavourFilterHeading}</legend>
 
-      {facets.map((f) => (
-        <Checkbox
-          key={f.value}
-          checked={f.selected}
-          onCheckedChange={() => toggle(f.value)}
-          // ⚠ A facet with zero results is DISABLED, not hidden. Hiding it makes
-          //   the list jump around as you filter; disabling it tells the truth
-          //   and keeps the layout stable.
-          disabled={f.count === 0 && !f.selected}
-          label={
-            <span className="flex w-full items-center justify-between gap-2">
-              <span className="flex items-center gap-2">
-                <FlavourSwatch strip={FLAVOUR_STRIPS[f.value]} size="sm" showLabel={false} />
-                <span>{f.label}</span>
-              </span>
-              <span className="spec-mono text-[--color-ink-subtle]">{f.count}</span>
-            </span>
-          }
-        />
-      ))}
+      <ul className="shop-filter-panel-list m-0 flex list-none flex-col gap-1 p-3">
+        {facets.map((f) => (
+          <li key={f.value} className="min-w-0">
+            <Checkbox
+              isSelected={f.selected}
+              onChange={(selected) => setFlavour(f.value, selected)}
+              // ⚠ A facet with zero results is DISABLED, not hidden. Hiding it makes
+              //   the list jump around as you filter; disabling it tells the truth
+              //   and keeps the layout stable.
+              isDisabled={f.count === 0 && !f.selected}
+              className={FLAVOUR_CHECKBOX}
+            >
+              <Checkbox.Content className="w-full min-w-0 items-center gap-3 py-1.5">
+                <Checkbox.Control>
+                  <Checkbox.Indicator />
+                </Checkbox.Control>
+                <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <FlavourSwatch
+                      strip={FLAVOUR_STRIPS[f.value]}
+                      size="sm"
+                      showLabel={false}
+                    />
+                    <span className="truncate font-body text-[length:--text-small] text-[--color-ink]">
+                      {f.label}
+                    </span>
+                  </span>
+                  <span className="spec-mono shrink-0 text-[length:--text-caption] text-[--color-ink-subtle]">
+                    {f.count}
+                  </span>
+                </span>
+              </Checkbox.Content>
+            </Checkbox>
+          </li>
+        ))}
+      </ul>
     </fieldset>
   );
 }
 
-function SizeFacets({
-  query,
-  facets,
-}: {
-  query: CatalogueQuery;
-  facets: readonly Facet<SizeCode>[];
-}) {
-  const { write } = useQueryWriter(query);
-
-  const toggle = (code: SizeCode) => {
-    const next = query.sizes.includes(code)
-      ? query.sizes.filter((s) => s !== code)
-      : [...query.sizes, code];
-    write({ sizes: next });
-  };
-
-  return (
-    <fieldset className="flex flex-col gap-3">
-      <legend className="label-caps mb-1 text-[--color-ink-muted]">Size</legend>
-      {facets.map((f) => (
-        <Checkbox
-          key={f.value}
-          checked={f.selected}
-          onCheckedChange={() => toggle(f.value)}
-          disabled={f.count === 0 && !f.selected}
-          label={
-            <span className="flex w-full items-center justify-between gap-2">
-              <span>{f.label}</span>
-              <span className="spec-mono text-[--color-ink-subtle]">{f.count}</span>
-            </span>
-          }
-        />
-      ))}
-    </fieldset>
-  );
-}
-
-function AvailabilityFacets({
-  query,
-  inStockCount,
-  subscriptionCount,
-}: {
-  query: CatalogueQuery;
-  inStockCount: number;
-  subscriptionCount: number;
-}) {
-  const { write } = useQueryWriter(query);
-
-  return (
-    <fieldset className="flex flex-col gap-3">
-      <legend className="label-caps mb-1 text-[--color-ink-muted]">Availability</legend>
-
-      <Checkbox
-        checked={query.availability === 'in-stock'}
-        onCheckedChange={(c) => write({ availability: c ? 'in-stock' : 'all' })}
-        label={
-          <span className="flex w-full items-center justify-between gap-2">
-            <span>In stock only</span>
-            <span className="spec-mono text-[--color-ink-subtle]">{inStockCount}</span>
-          </span>
-        }
-      />
-
-      {/*
-        ⛔ D-09 — SUBSCRIPTION ELIGIBILITY is a catalogue fact, and it is safe to
-           filter on. It does NOT mean subscriptions work: the billing model is
-           undecided (M-PESA has no card-on-file equivalent), nothing can be
-           subscribed to, and the PDP says so plainly. Filtering by an attribute
-           is not the same as selling against it. [NN-04]
-      */}
-      <Checkbox
-        checked={query.subscription}
-        onCheckedChange={(c) => write({ subscription: c })}
-        label={
-          <span className="flex w-full items-center justify-between gap-2">
-            <span>Subscription eligible</span>
-            <span className="spec-mono text-[--color-ink-subtle]">{subscriptionCount}</span>
-          </span>
-        }
-      />
-    </fieldset>
-  );
-}
+/* Size / availability / search UI intentionally omitted from the shop redesign
+ * sidebar (Phase 2). Domain query support in `query.ts` is unchanged. */
 
 /* ================================================================== *
- * SORT
+ * SORT — HeroUI select; default catalogue order shows as placeholder.
  * ================================================================== */
 
 export function SortSelect({ query }: { query: CatalogueQuery }) {
   const { write } = useQueryWriter(query);
-  const id = useId();
+  const selectedKey = query.sort === 'featured' ? null : query.sort;
 
   return (
-    <div className="flex items-center gap-3">
-      <label htmlFor={id} className="label-caps shrink-0 text-[--color-ink-muted]">
-        Sort
-      </label>
-      <select
-        id={id}
-        value={query.sort}
-        onChange={(e) => write({ sort: e.target.value as SortOption })}
-        className={cn(
-          'min-h-[--touch-min] rounded-[--radius-sm] border border-[--color-border]',
-          'bg-[--color-surface] px-3 py-2 text-[length:--text-small] text-[--color-ink]',
-          'focus-visible:outline-2 focus-visible:outline-[--color-focus] focus-visible:outline-offset-1'
-        )}
+    <div
+      className={cn(
+        'shop-sort-select-wrap relative w-full max-w-[16rem] sm:w-60',
+        selectedKey && 'shop-sort-select-wrap--clearable'
+      )}
+    >
+      <Select
+        aria-label={SHOP_PAGE.catalogue.orderByLabel}
+        placeholder={SHOP_PAGE.catalogue.sortPlaceholder}
+        selectedKey={selectedKey}
+        onSelectionChange={(key) => {
+          write({
+            sort: (key ? String(key) : 'featured') as SortOption,
+          });
+        }}
+        className="shop-sort-select w-full"
       >
-        {SORT_OPTIONS.map((o) => (
-          <option key={o} value={o}>
-            {SORT_LABELS[o]}
-          </option>
-        ))}
-      </select>
+        <Label className="sr-only">{SHOP_PAGE.catalogue.orderByLabel}</Label>
+        <Select.Trigger className="shop-sort-select__trigger">
+          <Select.Value />
+          <Select.Indicator />
+        </Select.Trigger>
+        <Select.Popover className="shop-sort-select__popover">
+          <ListBox items={SORT_MENU_OPTIONS}>
+            {(item) => (
+              <ListBox.Item id={item.value} textValue={item.label}>
+                {item.label}
+              </ListBox.Item>
+            )}
+          </ListBox>
+        </Select.Popover>
+      </Select>
+
+      {selectedKey ? (
+        <button
+          type="button"
+          aria-label={SHOP_PAGE.catalogue.sortClearLabel}
+          className="shop-sort-select__clear"
+          onClick={() => write({ sort: 'featured' })}
+        >
+          <X className="size-3.5" strokeWidth={2.25} aria-hidden />
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -318,21 +229,38 @@ export function ClearAll({ query }: { query: CatalogueQuery }) {
 }
 
 /* ================================================================== *
- * THE PANEL — shared by the desktop sidebar and the mobile drawer.
+ * THE PANEL — flavour-only card matching the Shop Page Grid sidebar
+ * chrome (header bar + bordered body). Size / availability domain
+ * support remains; those controls are simply not rendered here.
  * ================================================================== */
 
-function FilterPanel(props: ShopFiltersProps) {
+function FlavourOnlyPanel(props: Pick<ShopFiltersProps, 'query' | 'flavourFacets'>) {
+  const panelId = useId();
+  const headingId = `${panelId}-heading`;
+
   return (
-    <div className="flex flex-col gap-8">
-      <SearchField query={props.query} />
-      <FlavourFacets query={props.query} facets={props.flavourFacets} />
-      <SizeFacets query={props.query} facets={props.sizeFacets} />
-      <AvailabilityFacets
-        query={props.query}
-        inStockCount={props.inStockCount}
-        subscriptionCount={props.subscriptionCount}
-      />
-      <ClearAll query={props.query} />
+    <div className="shop-filter-panel overflow-hidden rounded-[--radius-md] border border-[--color-border] bg-[--color-surface]">
+      <h2
+        id={headingId}
+        className={cn(
+          'shop-filter-panel-header m-0 border-b border-[--color-border]',
+          'bg-[color-mix(in_oklab,var(--color-surface-sunken)_72%,var(--color-ink)_6%)]',
+          'px-4 py-2.5',
+          'font-body text-[1.0rem] font-normal tracking-[0.04em] text-[--color-ink]'
+        )}
+      >
+        {SHOP_PAGE.catalogue.flavourFilterHeading}
+      </h2>
+
+      <section aria-labelledby={headingId}>
+        <FlavourFacets query={props.query} facets={props.flavourFacets} />
+
+        {hasActiveFilters(props.query) && (
+          <div className="border-t border-[--color-border] px-4 py-3">
+            <ClearAll query={props.query} />
+          </div>
+        )}
+      </section>
     </div>
   );
 }
@@ -345,9 +273,9 @@ export function ShopFiltersSidebar(props: ShopFiltersProps) {
   return (
     <aside
       aria-label="Filter products"
-      className="hidden lg:block lg:w-64 lg:shrink-0"
+      className="hidden lg:block lg:w-72 lg:shrink-0"
     >
-      <FilterPanel {...props} />
+      <FlavourOnlyPanel query={props.query} flavourFacets={props.flavourFacets} />
     </aside>
   );
 }
@@ -369,7 +297,7 @@ export function ShopFiltersDrawer(props: ShopFiltersProps) {
       <Button
         variant="secondary"
         onClick={() => setOpen(true)}
-        className="w-full justify-center"
+        className="w-full justify-center sm:w-auto"
       >
         Filter
         {count > 0 && (
@@ -392,7 +320,7 @@ export function ShopFiltersDrawer(props: ShopFiltersProps) {
         side="bottom"
       >
         <div className="flex flex-col gap-8 pb-4">
-          <FilterPanel {...props} />
+          <FlavourOnlyPanel query={props.query} flavourFacets={props.flavourFacets} />
 
           {/*
             ⚠ The result count is on the CONFIRM button. A customer ticking

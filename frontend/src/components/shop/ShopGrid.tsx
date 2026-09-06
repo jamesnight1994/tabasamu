@@ -3,18 +3,24 @@
 /**
  * SHOP GRID
  *
- * The layout shell: sidebar (desktop) / drawer (mobile), the count, the sort,
- * the grid, and pagination.
+ * The layout shell: flavour sidebar (desktop) / drawer (mobile), toolbar
+ * (view · order by · count), the grid/list surface, and pagination.
+ *
+ * Grid: homepage CarouselProductCard. List: ShopProductListCard.
+ * Both use live cart via CartProvider.
  */
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { ProductCard } from '../storefront/ProductCard';
+import { CarouselProductCard } from '../storefront/CarouselProductCard';
 import {
   ShopFiltersSidebar,
   ShopFiltersDrawer,
   SortSelect,
   ClearAll,
 } from './ShopFilters';
+import { ShopViewToggle, type ShopViewMode } from './ShopViewToggle';
+import { ShopProductListCard } from './ShopProductListCard';
 import { Button } from '../primitives/Button';
 import {
   type CatalogueResult,
@@ -22,7 +28,8 @@ import {
   serialiseQuery,
   hasActiveFilters,
 } from '../../domain/catalogue/query';
-import type { Inventory, FlavourSlug, SizeCode, Product } from '../../domain/catalogue';
+import type { Inventory, FlavourSlug, SizeCode } from '../../domain/catalogue';
+import { SHOP_PAGE } from '../../content/shop';
 import { cn } from '../../lib/utils/cn';
 
 export interface ShopGridProps {
@@ -43,18 +50,7 @@ export function ShopGrid({
   subscriptionCount,
 }: ShopGridProps) {
   const { page, matched, catalogueSize, query } = result;
-
-  const handleQuickAdd = (product: Product) => {
-    /**
-     * ⛔ THE CART IS PHASE 5. This is deliberately a stub.
-     *
-     *   Wiring `carts.addLine()` now would hand the customer a cart they cannot
-     *   check out of — worse than a button that plainly does not persist yet.
-     *   The INTERACTION is real and testable (feedback, aria-live, sold-out
-     *   disabling); only the persistence is deferred. [NN-04]
-     */
-    console.info('[quick-add] Phase 5 will persist this:', product.slug);
-  };
+  const [view, setView] = useState<ShopViewMode>('grid');
 
   const filterProps = {
     query,
@@ -66,68 +62,70 @@ export function ShopGrid({
   };
 
   return (
-    <main id="main" className="mx-auto max-w-[--container-max] px-4 py-12 md:px-8 md:py-16">
-      <header className="mb-8 flex flex-col gap-4">
-        <p className="label-caps text-[--color-accent]">The range</p>
-        <h1 className="text-[length:--text-h1]">Six flavours, one system.</h1>
-        <p className="measure text-[length:--text-body-lg] text-[--color-ink-muted]">
-          The label never changes. Only the strip along the bottom does — so you learn to find
-          your one by its colour.
-        </p>
-      </header>
-
+    <main
+      id="main"
+      className="shop-catalogue container mx-auto w-full max-w-[--container-max] px-6 py-12 md:px-12 md:py-16 lg:px-16"
+    >
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
         <ShopFiltersSidebar {...filterProps} />
 
         <div className="min-w-0 flex-1">
-          {/* ---- toolbar: count + sort ---- */}
-          <div className="mb-6 flex flex-col gap-4 border-b border-[--color-border] pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              {/*
-                ⚠ THE COUNT IS ANNOUNCED. `aria-live` — a screen-reader user
-                  ticking a filter box gets no visual feedback, so the result
-                  count must be spoken. Without this, filtering is silent and the
-                  user has no idea whether anything changed.
-              */}
-              <p aria-live="polite" className="text-[length:--text-small] text-[--color-ink-muted]">
-                <span className="spec-mono text-[--color-ink]">{matched}</span>{' '}
-                {matched === 1 ? 'product' : 'products'}
-                {hasActiveFilters(query) && (
-                  <span className="text-[--color-ink-subtle]"> of {catalogueSize}</span>
-                )}
-              </p>
-              <div className="hidden sm:block">
-                <ClearAll query={query} />
-              </div>
+          <div className="shop-toolbar mb-6 border-b border-[--color-border] pb-4 md:grid md:grid-cols-3">
+            <div className="flex items-center justify-between gap-3 md:justify-start">
+              <ShopViewToggle view={view} onChange={setView} />
+              <ShopFiltersDrawer {...filterProps} />
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex-1 sm:hidden">
-                <ShopFiltersDrawer {...filterProps} />
-              </div>
+            <div className="flex justify-start md:justify-center">
               <SortSelect query={query} />
             </div>
+
+            {/*
+              ⚠ THE COUNT IS ANNOUNCED. `aria-live` — a screen-reader user
+                ticking a filter box gets no visual feedback, so the result
+                count must be spoken. Without this, filtering is silent and the
+                user has no idea whether anything changed.
+            */}
+            <p
+              aria-live="polite"
+              className="text-left text-[length:--text-small] text-[--color-ink-muted] md:text-right"
+            >
+              <span className="spec-mono text-[--color-ink]">{matched}</span>
+              <span className="text-[--color-ink-subtle]"> of {catalogueSize}</span>{' '}
+              {matched === 1 ? 'product' : 'products'}
+            </p>
           </div>
 
-          {/* ---- the grid, or the empty state ---- */}
           {page.items.length === 0 ? (
             <EmptyResults query={query} />
           ) : (
             <>
-              <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
-                {page.items.map((product, i) => (
-                  <li key={product.id} className="contents">
-                    <ProductCard
-                      product={product}
-                      inventory={inventory.get(product.variants[0].id as string) ?? null}
-                      quickAdd
-                      onQuickAdd={handleQuickAdd}
-                      // The first two are above the fold on a phone.
-                      priority={i < 2}
-                    />
-                  </li>
-                ))}
-              </ul>
+              {view === 'grid' ? (
+                <ul className="shop-product-surface grid grid-cols-2 items-stretch gap-4 md:grid-cols-3 md:gap-6">
+                  {page.items.map((product, i) => (
+                    <li key={product.id} className="min-w-0">
+                      <CarouselProductCard
+                        product={product}
+                        inventory={inventory.get(product.variants[0].id as string) ?? null}
+                        priority={i < 2}
+                        className="h-full"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <ul className="shop-product-surface grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 md:gap-5 lg:gap-6">
+                  {page.items.map((product, i) => (
+                    <li key={product.id} className="flex min-w-0">
+                      <ShopProductListCard
+                        product={product}
+                        inventory={inventory.get(product.variants[0].id as string) ?? null}
+                        priority={i < 2}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               <Pagination result={result} />
             </>
@@ -149,7 +147,7 @@ export function ShopGrid({
 function EmptyResults({ query }: { query: CatalogueResult['query'] }) {
   return (
     <div className="flex flex-col items-center gap-6 rounded-[--radius-lg] border border-dashed border-[--color-border-strong] px-6 py-16 text-center">
-      <h2 className="text-[length:--text-h3]">Nothing matches that.</h2>
+      <h2 className="text-[length:--text-h3]">{SHOP_PAGE.catalogue.emptyTitle}</h2>
 
       <p className="measure-narrow text-[--color-ink-muted]">
         {query.search.trim() ? (
@@ -160,7 +158,7 @@ function EmptyResults({ query }: { query: CatalogueResult['query'] }) {
               : '.'}
           </>
         ) : (
-          'No product matches the filters you have on.'
+          SHOP_PAGE.catalogue.emptyBody
         )}
       </p>
 

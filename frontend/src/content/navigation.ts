@@ -94,16 +94,7 @@ export const NAV_SOCIALS: readonly SocialLink[] = [
  * Home is omitted; the logo link covers it.
  */
 export const NAV_MENU: readonly NavEntry[] = [
-  {
-    href: '/shop',
-    label: 'Shop',
-    hasDropdown: true,
-    children: [
-      { href: '/shop', label: 'All flavours' },
-      { href: '/bundles/build-your-own', label: 'Build a Box', flag: 'buildABox' },
-      { href: '/catalogue', label: 'Catalogue' },
-    ],
-  },
+  { href: '/shop', label: 'Shop' },
   { href: '/about', label: 'About us' },
   {
     href: '/stockists',

@@ -37,6 +37,7 @@ export interface CarouselProductCardProps {
   product: Product;
   inventory: Inventory | null;
   priority?: boolean;
+  className?: string;
 }
 
 /** size-9 + 20% */
@@ -309,6 +310,7 @@ export function CarouselProductCard({
   product,
   inventory,
   priority = false,
+  className,
 }: CarouselProductCardProps) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
@@ -341,7 +343,7 @@ export function CarouselProductCard({
   return (
     <article
       data-product={product.slug}
-      className="group/card flex flex-col"
+      className={cn('group/card flex h-full w-full min-w-0 flex-col', className)}
       onMouseEnter={() => setCardActive(true)}
       onMouseLeave={() => setCardActive(false)}
       onFocus={() => setCardActive(true)}

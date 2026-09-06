@@ -14,6 +14,7 @@
 
 import { useId, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Bell,
   ChevronDown,
@@ -81,7 +82,18 @@ const navItemClass = cn(
   'transition-colors duration-[--duration-fast]'
 );
 
+const navItemActiveClass = cn(
+  'font-semibold text-[--color-link-hover]',
+  'underline decoration-[--color-link-hover]/60 decoration-1 underline-offset-[0.35em]'
+);
+
+function isNavActive(pathname: string, href: string, children?: readonly NavChild[]): boolean {
+  if (pathname === href || pathname.startsWith(`${href}/`)) return true;
+  return Boolean(children?.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`)));
+}
+
 export function Navbar({ cartCount = 0, onCartClick, scrolled = false }: NavbarProps) {
+  const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menu = visibleMenu();
@@ -146,7 +158,7 @@ export function Navbar({ cartCount = 0, onCartClick, scrolled = false }: NavbarP
       >
         <div className={SITE_CONTAINER}>
           <div className="flex items-center gap-4 py-3 md:gap-5 md:py-3.5 lg:gap-6">
-            <div className="flex min-w-0 items-center gap-5 lg:gap-8">
+            <div className="flex min-w-0 items-center gap-5 lg:gap-12 xl:gap-14">
               <Link
                 href="/"
                 aria-label="Tabasamu Sips — home"
@@ -166,6 +178,7 @@ export function Navbar({ cartCount = 0, onCartClick, scrolled = false }: NavbarP
                     <DesktopNavItem
                       key={item.href + item.label}
                       item={item}
+                      pathname={pathname}
                       openMenu={openMenu}
                       setOpenMenu={setOpenMenu}
                     />
@@ -260,32 +273,50 @@ export function Navbar({ cartCount = 0, onCartClick, scrolled = false }: NavbarP
       <Drawer open={navOpen} onOpenChange={setNavOpen} title="Menu" side="right">
         <nav aria-label="Mobile" id="mobile-nav" className="flex flex-col gap-6">
           <ul className="flex flex-col gap-1">
-            {menu.map((item) => (
+            {menu.map((item) => {
+              const active = isNavActive(pathname, item.href, item.children);
+              return (
               <li key={item.href + item.label}>
                 <Link
                   href={item.href}
                   onClick={() => setNavOpen(false)}
-                  className="flex min-h-[--touch-comfortable] items-center py-3 font-body text-[length:--text-small] text-[--color-ink] no-underline hover:text-[--color-link]"
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'flex min-h-[--touch-comfortable] items-center py-3 font-body text-[length:--text-small] no-underline',
+                    active
+                      ? 'font-semibold text-[--color-link-hover]'
+                      : 'text-[--color-ink] hover:text-[--color-link]'
+                  )}
                 >
                   {item.label}
                 </Link>
                 {item.hasDropdown && item.children && item.children.length > 0 && (
                   <ul className="mb-2 ml-3 flex flex-col gap-0.5 pl-3">
-                    {item.children.map((child) => (
+                    {item.children.map((child) => {
+                      const childActive = isNavActive(pathname, child.href);
+                      return (
                       <li key={child.href + child.label}>
                         <Link
                           href={child.href}
                           onClick={() => setNavOpen(false)}
-                          className="flex min-h-10 items-center py-1 font-body text-[length:--text-caption] text-[--color-ink-muted] no-underline hover:text-[--color-link]"
+                          aria-current={childActive ? 'page' : undefined}
+                          className={cn(
+                            'flex min-h-10 items-center py-1 font-body text-[length:--text-caption] no-underline',
+                            childActive
+                              ? 'font-semibold text-[--color-link-hover]'
+                              : 'text-[--color-ink-muted] hover:text-[--color-link]'
+                          )}
                         >
                           {child.label}
                         </Link>
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
                 )}
               </li>
-            ))}
+              );
+            })}
           </ul>
 
           <Button asChild fullWidth>
@@ -301,10 +332,12 @@ export function Navbar({ cartCount = 0, onCartClick, scrolled = false }: NavbarP
 
 function DesktopNavItem({
   item,
+  pathname,
   openMenu,
   setOpenMenu,
 }: {
   item: NavEntry;
+  pathname: string;
   openMenu: string | null;
   setOpenMenu: (key: string | null) => void;
 }) {
@@ -312,11 +345,16 @@ function DesktopNavItem({
   const isOpen = openMenu === key;
   const menuId = useId();
   const hasDropdown = Boolean(item.hasDropdown && item.children && item.children.length > 0);
+  const active = isNavActive(pathname, item.href, item.children);
 
   if (!hasDropdown) {
     return (
       <li>
-        <Link href={item.href} className={navItemClass}>
+        <Link
+          href={item.href}
+          aria-current={active ? 'page' : undefined}
+          className={cn(navItemClass, active && navItemActiveClass)}
+        >
           {item.label}
         </Link>
       </li>
@@ -331,10 +369,15 @@ function DesktopNavItem({
     >
       <button
         type="button"
-        className={cn(navItemClass, 'cursor-pointer border-0 bg-transparent p-0')}
+        className={cn(
+          navItemClass,
+          'cursor-pointer border-0 bg-transparent p-0',
+          active && navItemActiveClass
+        )}
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-controls={menuId}
+        aria-current={active ? 'page' : undefined}
         onClick={() => setOpenMenu(isOpen ? null : key)}
       >
         {item.label}
@@ -351,18 +394,27 @@ function DesktopNavItem({
       {isOpen && (
         <div className="absolute left-0 top-full z-20 min-w-40 pt-2">
           <ul id={menuId} role="menu" className={cn('py-1.5', UTILITY_BG)}>
-            {item.children!.map((child) => (
+            {item.children!.map((child) => {
+              const childActive = isNavActive(pathname, child.href);
+              return (
               <li key={child.href + child.label} role="none">
                 <Link
                   role="menuitem"
                   href={child.href}
-                  className="block px-4 py-2 font-body text-[0.8125rem] text-[--color-ink] no-underline hover:bg-[--color-canvas] hover:text-[--color-link]"
+                  aria-current={childActive ? 'page' : undefined}
+                  className={cn(
+                    'block px-4 py-2 font-body text-[0.8125rem] no-underline hover:bg-[--color-canvas]',
+                    childActive
+                      ? 'font-semibold text-[--color-link-hover]'
+                      : 'text-[--color-ink] hover:text-[--color-link]'
+                  )}
                   onClick={() => setOpenMenu(null)}
                 >
                   {child.label}
                 </Link>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       )}

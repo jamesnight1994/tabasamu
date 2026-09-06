@@ -267,6 +267,21 @@ export const ABOUT_HERO_SLOT: ImageSlot = {
   supplied: true,
 };
 
+/** Shop hero — kitchen prep editorial (square source, cover-cropped in hero). */
+export const SHOP_HERO_SLOT: ImageSlot = {
+  id: 'shop-hero',
+  src: '/process/prep.jpg',
+  alt: 'Preparing fruit and rooibos for Tabasamu Sips in the Nairobi kitchen.',
+  width: 1248,
+  height: 1248,
+  aspect: '21/9',
+  sizes: '100vw',
+  textOverlay: 'safe-zone-left',
+  direction:
+    'Shop page hero — warm prep kitchen crop; text legibility from brown overlay, not a dark grade.',
+  supplied: true,
+};
+
 export const JOURNAL_SLOT: ImageSlot = {
   id: 'journal-preview',
   src: '/products/journal-1.jpg',
@@ -292,6 +307,7 @@ export const ALL_SLOTS: readonly ImageSlot[] = [
   INGREDIENTS_SLOT,
   CONTACT_HERO_SLOT,
   ABOUT_HERO_SLOT,
+  SHOP_HERO_SLOT,
   JOURNAL_SLOT,
 ];
 

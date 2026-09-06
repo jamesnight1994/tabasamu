@@ -1,0 +1,171 @@
+/* Shop page — hero overlay shared with contact/about; catalogue band */
+
+.shop-hero-overlay {
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to left,
+      color-mix(in oklab, var(--color-hero-panel) 92%, transparent) 0%,
+      color-mix(in oklab, var(--color-hero-panel) 68%, transparent) 28%,
+      transparent 58%
+    ),
+    linear-gradient(
+      105deg,
+      color-mix(in oklab, var(--color-hero-panel) 96%, transparent) 0%,
+      color-mix(in oklab, var(--color-hero-panel) 82%, transparent) 38%,
+      color-mix(in oklab, var(--color-hero-panel) 58%, transparent) 68%,
+      color-mix(in oklab, var(--color-hero-panel) 75%, transparent) 100%
+    );
+}
+
+.shop-hero-eyebrow {
+  color: color-mix(in oklab, var(--color-ink-inverse) 92%, var(--color-accent) 8%);
+}
+
+.shop-hero-heading {
+  color: var(--color-ink-inverse);
+  text-shadow: 0 2px 16px rgb(45 35 28 / 0.45);
+}
+
+.shop-hero-breadcrumbs {
+  justify-content: flex-end;
+}
+
+@media (min-width: 768px) {
+  .shop-hero-breadcrumbs {
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--radius-sm);
+    background: color-mix(in oklab, var(--color-hero-panel) 72%, transparent);
+  }
+
+  .shop-hero-breadcrumbs ol {
+    justify-content: flex-end;
+  }
+}
+
+.shop-catalogue {
+  background-color: color-mix(in oklab, var(--color-cream) 88%, var(--color-surface) 12%);
+}
+
+.shop-product-surface {
+  align-items: stretch;
+}
+
+/* Toolbar chrome — filled in Phase 2 */
+.shop-toolbar {
+  display: grid;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .shop-toolbar {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.shop-view-toggle button {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+}
+
+.shop-view-toggle button[aria-pressed='true'] {
+  color: var(--color-link-hover);
+  background-color: color-mix(in oklab, var(--color-link) 12%, transparent);
+}
+
+.shop-list-card {
+  width: 100%;
+}
+
+.shop-list-card .shop-list-card__stock,
+.shop-list-card p {
+  margin: 0;
+}
+
+.shop-filter-panel {
+  box-shadow: var(--shadow-raised);
+}
+
+.shop-filter-panel-header {
+  letter-spacing: 0.02em;
+}
+
+.shop-filter-panel-list .checkbox__content {
+  width: 100%;
+}
+
+.shop-sort-select__trigger {
+  min-height: var(--touch-min);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-raised);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+.shop-sort-select-wrap--clearable .shop-sort-select__trigger {
+  padding-inline-end: 2.75rem;
+}
+
+.shop-sort-select__clear {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 1.75rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-block: auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+.shop-sort-select__clear:hover {
+  color: var(--color-ink);
+  background-color: color-mix(in oklab, var(--color-surface-sunken) 70%, var(--color-ink) 8%);
+}
+
+.shop-sort-select__clear:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.shop-sort-select__trigger[data-placeholder='true'],
+.shop-sort-select__trigger[data-placeholder] {
+  color: var(--color-ink-muted);
+}
+
+.shop-sort-select__trigger[data-focus='true'],
+.shop-sort-select__trigger[data-focus-visible='true'] {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-cream-raised);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.shop-sort-select__trigger:hover {
+  border-color: var(--color-border-strong);
+}
+
+.shop-sort-select__popover {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-overlay);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+}
