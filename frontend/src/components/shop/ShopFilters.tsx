@@ -65,12 +65,17 @@ export interface ShopFiltersProps {
 }
 
 /** Writes a new query to the URL. Every control funnels through this. */
-const useQueryWriter = (query: CatalogueQuery) => {
+type QueryWriter = {
+  write: (patch: Partial<CatalogueQuery>) => void;
+  isPending: boolean;
+};
+
+const useQueryWriter = (query: CatalogueQuery): QueryWriter => {
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
-  const write = (patch: Partial<CatalogueQuery>) => {
+  const write = (patch: Partial<CatalogueQuery>): void => {
     // ⚠ Any change other than paging returns to page 1. Staying on page 3 of a
     //   result set that now has one page is how a customer sees an empty grid
     //   and concludes the shop is broken.

@@ -44,7 +44,7 @@
 }
 
 .shop-catalogue {
-  background-color: color-mix(in oklab, var(--color-cream) 88%, var(--color-surface) 12%);
+  background-color: color-mix(in oklab, var(--color-cream-raised) 94%, white 6%);
 }
 
 .shop-product-surface {
@@ -64,14 +64,56 @@
   }
 }
 
-.shop-view-toggle button {
-  inline-size: 2.5rem;
-  block-size: 2.5rem;
+.shop-view-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-raised);
 }
 
-.shop-view-toggle button[aria-pressed='true'] {
+.shop-view-toggle__option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  margin: 0;
+  border: 0;
+  border-inline-end: 1px solid var(--color-border);
+  border-radius: 0;
+  background-color: transparent;
+  color: var(--color-ink-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.shop-view-toggle__option--last {
+  border-inline-end: 0;
+}
+
+.shop-view-toggle__option--idle {
+  cursor: pointer;
+}
+
+.shop-view-toggle__option--idle:hover {
+  background-color: color-mix(in oklab, var(--color-surface-sunken) 80%, var(--color-ink) 4%);
+  color: var(--color-ink);
+}
+
+.shop-view-toggle__option--selected {
+  cursor: default;
+  background-color: color-mix(in oklab, var(--color-link) 14%, var(--color-surface));
   color: var(--color-link-hover);
-  background-color: color-mix(in oklab, var(--color-link) 12%, transparent);
+}
+
+.shop-view-toggle__option:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+  z-index: 1;
 }
 
 .shop-list-card {

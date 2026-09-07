@@ -78,7 +78,7 @@ function StorefrontChrome({ children }: { children: React.ReactNode }) {
           storage before this first paints. */}
       <Header cartCount={itemCount} onCartClick={() => setCartOpen(true)} />
 
-      <main id="main" className="min-h-[60vh]">
+      <main id="main" className="min-h-[60vh] bg-transparent">
         {children}
       </main>
 
