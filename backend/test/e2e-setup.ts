@@ -46,7 +46,8 @@ export function prepareE2eDatabase(): void {
 
 export async function truncateCatalogue(): Promise<void> {
   const db = getE2ePrisma();
-  // FK order: images/variants → products
+  // FK order: stock units → images/variants → products
+  await db.stockUnit.deleteMany();
   await db.productImage.deleteMany();
   await db.variant.deleteMany();
   await db.product.deleteMany();

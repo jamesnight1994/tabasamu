@@ -21,6 +21,16 @@ enum ImageRole {
   process
 }
 
+/// Serialized stock-unit lifecycle (QR per bottle). See #19/#20.
+/// Status machine: printed → in_stock → sold; printed|in_stock → void.
+/// sold and void are terminal (returns get a NEW code, not reactivation).
+enum StockUnitStatus {
+  printed
+  in_stock
+  sold
+  void
+}
+
 model Product {
   id                    String         @id @default(cuid())
   slug                  String         @unique
@@ -54,7 +64,8 @@ model Variant {
   active       Boolean @default(true)
   stockOnHand  Int     @default(0) @map("stock_on_hand")
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  stockUnits StockUnit[]
 
   @@index([productId])
   @@map("variants")
@@ -74,4 +85,27 @@ model ProductImage {
 
   @@index([productId])
   @@map("product_images")
+}
+
+/// One physical bottle = one serialized unit with an opaque QR `code`.
+/// `variantId` is null until activation binds a SKU (#22). `batchId` groups
+/// a print run (#21). `variant.stockOnHand` is kept in sync with the count of
+/// this variant's `in_stock` units — the unit ledger is the source of truth.
+model StockUnit {
+  id          String          @id @default(cuid())
+  code        String          @unique
+  status      StockUnitStatus @default(printed)
+  variantId   String?         @map("variant_id")
+  batchId     String?         @map("batch_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  activatedAt DateTime?       @map("activated_at")
+  soldAt      DateTime?       @map("sold_at")
+
+  variant Variant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([variantId])
+  @@index([status])
+  @@index([batchId])
+  @@map("stock_units")
 }
