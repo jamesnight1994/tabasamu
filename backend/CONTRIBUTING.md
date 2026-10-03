@@ -77,6 +77,23 @@ Copy the **products** module pattern. Do not invent a second architecture.
    - Wire the port in [`frontend/src/adapters/http/index.ts`](../frontend/src/adapters/http/index.ts)
    - Keep mocks as the default for CI (`NEXT_PUBLIC_ADAPTERS=mock`)
 
+## Serialized stock units (QR per bottle)
+
+Epic [#19](https://github.com/jamesnight1994/tabasamu/issues/19). Foundation landed in [#20](https://github.com/jamesnight1994/tabasamu/issues/20): `StockUnit` model + status machine. One physical bottle = one `StockUnit` with an opaque QR `code`.
+
+- **Model** — `prisma/schema.prisma` → `StockUnit` (`stock_units`). Opaque unique `code` (cuid), nullable `variantId` (bound at activation), optional `batchId` (print run), `activatedAt` / `soldAt`.
+- **Status machine** — enum `StockUnitStatus` + `src/stock-units/stock-unit-status.ts` (single source of truth):
+
+  ```
+  printed ──▶ in_stock ──▶ sold
+  printed ──▶ void
+  in_stock ─▶ void
+  ```
+
+  `sold` and `void` are terminal — a return gets a **new** code, never a reactivation ([#24](https://github.com/jamesnight1994/tabasamu/issues/24)). Transition endpoints (activate [#22](https://github.com/jamesnight1994/tabasamu/issues/22), fulfill [#23](https://github.com/jamesnight1994/tabasamu/issues/23), void [#24](https://github.com/jamesnight1994/tabasamu/issues/24)) **must** gate on `assertTransition(from, to)` rather than writing `status` directly.
+- **Stock rule** — `variant.stockOnHand` is **derived from the unit ledger**: it equals the count of that variant's `in_stock` units. Any status change must call `StockUnitsService.syncVariantStock(variantId, tx)` inside the same transaction instead of hand-editing `stockOnHand`. Do not let manual `stockOnHand` edits fight the ledger.
+- **Admin reads (today)** — guarded `GET /v1/admin/stock-units` (filter `status`/`variantId`/`batchId`/`limit`), `GET /v1/admin/stock-units/summary?variantId=`, `GET /v1/admin/stock-units/:code`.
+
 ## Reference implementation
 
 | Concern | File |
