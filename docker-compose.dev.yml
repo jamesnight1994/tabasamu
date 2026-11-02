@@ -96,6 +96,8 @@ services:
       NEXT_PUBLIC_API_URL: http://localhost:${NEST_HOST_PORT:-3001}
       # Next server components → Compose network
       NEST_API_URL: http://backend-api:3001
+      # Server-only — admin BFF injects X-Admin-Api-Key (must match backend-api)
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-dev-admin-key-change-me}
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     volumes:

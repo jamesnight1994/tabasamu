@@ -1,0 +1,159 @@
+.admin-stock-card {
+  min-height: 0;
+}
+
+.admin-stock-toolbar {
+  padding: 0.85rem 1.25rem 0.65rem;
+  border-bottom: 1px solid #f4f4f5;
+}
+
+.admin-stock-toolbar__title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #3f3f46;
+}
+
+.admin-stock-banner {
+  margin: 0.75rem 1.25rem 0;
+}
+
+.admin-stock-tabs {
+  min-height: 0;
+}
+
+.admin-stock-tabs__panel {
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem 1.25rem 1.5rem;
+}
+
+.admin-stock-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 36rem;
+}
+
+.admin-stock-lede {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #52525b;
+}
+
+.admin-stock-print-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.admin-stock-print-form__size {
+  width: 8rem;
+}
+
+.admin-stock-print-result__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.admin-stock-code-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-stock-code-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.admin-stock-code-card__qr svg {
+  width: 100%;
+  height: auto;
+}
+
+.admin-stock-code-card code {
+  font-size: 0.65rem;
+  word-break: break-all;
+  text-align: center;
+  color: #3f3f46;
+}
+
+.admin-stock-scanner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-stock-scanner__frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #18181b;
+  aspect-ratio: 3 / 4;
+  max-height: 22rem;
+}
+
+.admin-stock-scanner__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-stock-scanner__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 1.25rem;
+  text-align: center;
+  color: #e4e4e7;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.admin-stock-scanner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-stock-scanner__error,
+.admin-stock-result {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.admin-stock-scanner__error {
+  color: #b91c1c;
+}
+
+.admin-stock-result {
+  color: #166534;
+}
+
+@media (min-width: 640px) {
+  .admin-stock-scanner__frame {
+    aspect-ratio: 4 / 3;
+  }
+}

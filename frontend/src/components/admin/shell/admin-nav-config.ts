@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Package,
+  QrCode,
   Settings,
   ShoppingCart,
   type LucideIcon,
@@ -28,6 +29,12 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: '/dashboard/products',
     icon: Package,
     tooltip: 'Catalogue management',
+  },
+  {
+    label: 'Stock',
+    href: '/dashboard/stock',
+    icon: QrCode,
+    tooltip: 'Print, activate, and fulfill bottle scans',
   },
   {
     label: 'Orders',
