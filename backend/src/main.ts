@@ -3,6 +3,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import {
+  ProductEntity,
+  ProductImageEntity,
+  StockBatchEntity,
+  StockUnitEntity,
+  VariantEntity,
+} from './generated/nestjs-dto';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,7 +31,7 @@ async function bootstrap() {
   const swagger = new DocumentBuilder()
     .setTitle('Tabasamu API')
     .setDescription(
-      'Lean ecommerce API (Phase 1: product management). Admin routes use header `X-Admin-Api-Key` (no User login yet).',
+      'Lean ecommerce API. Prisma schema is the model source of truth — Nest DTO/Entity classes are generated for Swagger. Admin routes use header `X-Admin-Api-Key`.',
     )
     .setVersion('0.1')
     .addApiKey(
@@ -39,7 +46,16 @@ async function bootstrap() {
     .addServer(`http://localhost:${process.env.PORT ?? 3001}`, 'Local')
     .build();
 
-  const documentFactory = () => SwaggerModule.createDocument(app, swagger);
+  const documentFactory = () =>
+    SwaggerModule.createDocument(app, swagger, {
+      extraModels: [
+        ProductEntity,
+        VariantEntity,
+        ProductImageEntity,
+        StockBatchEntity,
+        StockUnitEntity,
+      ],
+    });
   SwaggerModule.setup('docs', app, documentFactory, {
     jsonDocumentUrl: 'docs-json',
     yamlDocumentUrl: 'docs-yaml',

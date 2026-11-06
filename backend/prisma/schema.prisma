@@ -2,6 +2,19 @@ generator client {
   provider = "prisma-client-js"
 }
 
+/// Prisma is the source of truth. This generator emits Nest DTO/Entity classes
+/// with @ApiProperty so Swagger UI registers the same models.
+generator nestjsDto {
+  provider                    = "prisma-generator-nestjs-dto"
+  output                      = "../src/generated/nestjs-dto"
+  classValidation             = "true"
+  definiteAssignmentAssertion = "true"
+  entitySuffix                = "Entity"
+  reExport                    = "true"
+  prettier                    = "true"
+  wrapRelationsAsType         = "true"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -54,7 +67,8 @@ model Variant {
   active       Boolean @default(true)
   stockOnHand  Int     @default(0) @map("stock_on_hand")
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  stockUnits StockUnit[]
 
   @@index([productId])
   @@map("variants")
@@ -74,4 +88,73 @@ model ProductImage {
 
   @@index([productId])
   @@map("product_images")
+}
+
+enum StockUnitStatus {
+  printed
+  in_stock
+  sold
+  void
+}
+
+/// Print batch of blank bottle serials. SKU is bound later on activate.
+model StockBatch {
+  /// @DtoReadOnly
+  id String @id @default(cuid())
+
+  /// @description How many blank QR codes to create
+  /// @minimum 1
+  /// @maximum 200
+  /// @DtoCreateRequired
+  size Int
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now()) @map("created_at")
+
+  /// @DtoEntityHidden
+  units StockUnit[]
+
+  @@map("stock_batches")
+}
+
+/// Per-bottle serial. Status machine: printed → in_stock → sold | void.
+model StockUnit {
+  /// @DtoReadOnly
+  id String @id @default(cuid())
+
+  /// @DtoReadOnly
+  /// @description Opaque serial. Scanner sends this string only.
+  code String @unique @default(cuid())
+
+  /// @DtoReadOnly
+  status StockUnitStatus @default(printed)
+
+  /// @description Variant / SKU. Null until activate.
+  variantId String? @map("variant_id")
+
+  /// @DtoReadOnly
+  batchId String @map("batch_id")
+
+  /// @DtoReadOnly
+  createdAt DateTime @default(now()) @map("created_at")
+
+  /// @DtoReadOnly
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  /// @DtoReadOnly
+  activatedAt DateTime? @map("activated_at")
+
+  /// @DtoReadOnly
+  soldAt DateTime? @map("sold_at")
+
+  /// @DtoEntityHidden
+  variant Variant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  /// @DtoEntityHidden
+  batch StockBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([variantId])
+  @@index([batchId])
+  @@index([status])
+  @@map("stock_units")
 }

@@ -6,10 +6,16 @@ export const ADMIN_API_PATHS = {
   products: '/admin/products',
   product: (id: string) => `/admin/products/${id}`,
   productPublish: (id: string) => `/admin/products/${id}/publish`,
+  stockUnitBatches: '/admin/stock-units/batches',
+  stockUnitActivate: (code: string) =>
+    `/admin/stock-units/${encodeURIComponent(code)}/activate`,
+  stockUnitFulfill: (code: string) =>
+    `/admin/stock-units/${encodeURIComponent(code)}/fulfill`,
 } as const;
 
 export const ADMIN_ROUTES = {
   login: '/admin/login',
   forgotPassword: '/admin/forgot-password',
   dashboard: '/dashboard',
+  stock: '/dashboard/stock',
 } as const;
