@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Tabs } from '@heroui/react';
-import { PackageCheck, QrCode, ScanLine } from 'lucide-react';
+import { Ban, PackageCheck, QrCode, ScanLine } from 'lucide-react';
 import { useAdminAuth } from '../AdminAuthProvider';
 import { AdminStockActivatePanel } from './AdminStockActivatePanel';
 import { AdminStockFulfillPanel } from './AdminStockFulfillPanel';
 import { AdminStockPrintPanel } from './AdminStockPrintPanel';
+import { AdminStockVoidPanel } from './AdminStockVoidPanel';
 
-export type AdminStockTabKey = 'print' | 'activate' | 'fulfill';
+export type AdminStockTabKey = 'print' | 'activate' | 'fulfill' | 'void';
 
 export function AdminStockPageContent() {
   const { authChecker } = useAdminAuth();
@@ -36,7 +37,7 @@ export function AdminStockPageContent() {
               <Alert.Title>Preview store</Alert.Title>
               <Alert.Description>
                 Nest stock APIs are not up yet. This tab is using a session store so you can walk
-                print → activate → fulfill.
+                print → activate → fulfill / void.
               </Alert.Description>
             </Alert.Content>
           </Alert>
@@ -67,6 +68,12 @@ export function AdminStockPageContent() {
                   Fulfill
                 </span>
               </Tabs.Tab>
+              <Tabs.Tab id="void">
+                <span className="admin-dashboard-tabs__tab-content">
+                  <Ban size={16} aria-hidden />
+                  Void
+                </span>
+              </Tabs.Tab>
             </Tabs.List>
           </Tabs.ListContainer>
           <Tabs.Panel id="print">
@@ -82,6 +89,11 @@ export function AdminStockPageContent() {
           <Tabs.Panel id="fulfill">
             <div className="admin-stock-tabs__panel">
               <AdminStockFulfillPanel onSource={onSource} />
+            </div>
+          </Tabs.Panel>
+          <Tabs.Panel id="void">
+            <div className="admin-stock-tabs__panel">
+              <AdminStockVoidPanel onSource={onSource} />
             </div>
           </Tabs.Panel>
         </Tabs>

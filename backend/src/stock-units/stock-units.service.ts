@@ -9,9 +9,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { StockUnitEntity } from '../generated/nestjs-dto/stockUnit.entity';
 import { CreateStockBatchDto } from '../generated/nestjs-dto/create-stockBatch.dto';
 import { ActivateStockUnitDto } from './dto/activate-stock-unit.dto';
+import { UpdateStockUnitStatusDto } from './dto/update-stock-unit-status.dto';
+import { assertTransition } from './stock-unit-status';
 
 const MIN_BATCH = 1;
 const MAX_BATCH = 200;
+
+type DbClient = Prisma.TransactionClient | PrismaService;
 
 const toEntity = (row: {
   id: string;
@@ -54,7 +58,9 @@ export class StockUnitsService {
       where: { code: code.trim() },
     });
     if (!unit) {
-      throw new NotFoundException('This code is not in the system. Check the print batch or try again.');
+      throw new NotFoundException(
+        'This code is not in the system. Check the print batch or try again.',
+      );
     }
     return toEntity(unit);
   }
@@ -94,97 +100,107 @@ export class StockUnitsService {
   }
 
   async activate(code: string, dto: ActivateStockUnitDto): Promise<StockUnitEntity> {
-    const variantId = dto.variantId.trim();
-    const variant = await this.prisma.variant.findUnique({ where: { id: variantId } });
-    if (!variant) {
-      throw new UnprocessableEntityException('Choose a valid product / SKU.');
-    }
-
-    try {
-      const unit = await this.prisma.$transaction(async (tx) => {
-        const current = await tx.stockUnit.findUnique({ where: { code: code.trim() } });
-        if (!current) {
-          throw new NotFoundException(
-            'This code is not in the system. Check the print batch or try again.',
-          );
-        }
-        this.assertActivatable(current.status);
-
-        const next = await tx.stockUnit.update({
-          where: { id: current.id },
-          data: {
-            status: StockUnitStatus.in_stock,
-            variantId,
-            activatedAt: new Date(),
-          },
-        });
-        await tx.variant.update({
-          where: { id: variantId },
-          data: { stockOnHand: { increment: 1 } },
-        });
-        return next;
-      });
-      return toEntity(unit);
-    } catch (error) {
-      this.rethrowKnown(error);
-    }
+    return this.transition(code, {
+      status: StockUnitStatus.in_stock,
+      variantId: dto.variantId,
+    });
   }
 
   async fulfill(code: string): Promise<StockUnitEntity> {
+    return this.transition(code, { status: StockUnitStatus.sold });
+  }
+
+  async void(code: string): Promise<StockUnitEntity> {
+    return this.transition(code, { status: StockUnitStatus.void });
+  }
+
+  async updateStatus(
+    code: string,
+    dto: UpdateStockUnitStatusDto,
+  ): Promise<StockUnitEntity> {
+    return this.transition(code, {
+      status: dto.status,
+      variantId: dto.variantId,
+    });
+  }
+
+  /**
+   * Derive Variant.stockOnHand from the count of in_stock units.
+   * The unit ledger is the source of truth — do not dual-write ±1.
+   */
+  async syncVariantStock(variantId: string, tx: DbClient = this.prisma): Promise<void> {
+    const count = await tx.stockUnit.count({
+      where: { variantId, status: StockUnitStatus.in_stock },
+    });
+    await tx.variant.update({
+      where: { id: variantId },
+      data: { stockOnHand: count },
+    });
+  }
+
+  private async transition(
+    code: string,
+    opts: { status: StockUnitStatus; variantId?: string },
+  ): Promise<StockUnitEntity> {
+    const nextStatus = opts.status;
+    const requestedVariantId = opts.variantId?.trim();
+
     try {
       const unit = await this.prisma.$transaction(async (tx) => {
-        const current = await tx.stockUnit.findUnique({ where: { code: code.trim() } });
+        const current = await tx.stockUnit.findUnique({
+          where: { code: code.trim() },
+        });
         if (!current) {
           throw new NotFoundException(
             'This code is not in the system. Check the print batch or try again.',
           );
         }
-        this.assertFulfillable(current.status);
+
+        assertTransition(current.status, nextStatus);
+
+        let boundVariantId = current.variantId;
+
+        if (nextStatus === StockUnitStatus.in_stock) {
+          const variantId = requestedVariantId ?? current.variantId;
+          if (!variantId) {
+            throw new UnprocessableEntityException('Choose a valid product / SKU.');
+          }
+          const variant = await tx.variant.findUnique({ where: { id: variantId } });
+          if (!variant) {
+            throw new UnprocessableEntityException('Choose a valid product / SKU.');
+          }
+          boundVariantId = variantId;
+        }
+
+        const data: Prisma.StockUnitUpdateInput = {
+          status: nextStatus,
+        };
+
+        if (nextStatus === StockUnitStatus.in_stock && boundVariantId) {
+          data.variant = { connect: { id: boundVariantId } };
+          data.activatedAt = new Date();
+        }
+        if (nextStatus === StockUnitStatus.sold) {
+          data.soldAt = new Date();
+        }
 
         const next = await tx.stockUnit.update({
           where: { id: current.id },
-          data: {
-            status: StockUnitStatus.sold,
-            soldAt: new Date(),
-          },
+          data,
         });
-        if (current.variantId) {
-          await tx.variant.update({
-            where: { id: current.variantId },
-            data: { stockOnHand: { decrement: 1 } },
-          });
+
+        const variantsToSync = new Set<string>();
+        if (current.variantId) variantsToSync.add(current.variantId);
+        if (boundVariantId) variantsToSync.add(boundVariantId);
+        for (const variantId of variantsToSync) {
+          await this.syncVariantStock(variantId, tx);
         }
+
         return next;
       });
       return toEntity(unit);
     } catch (error) {
       this.rethrowKnown(error);
-    }
-  }
-
-  private assertActivatable(status: StockUnitStatus): void {
-    if (status === StockUnitStatus.in_stock) {
-      throw new ConflictException('This bottle is already activated and in stock.');
-    }
-    if (status === StockUnitStatus.sold) {
-      throw new ConflictException('This bottle is already marked sold.');
-    }
-    if (status === StockUnitStatus.void) {
-      throw new UnprocessableEntityException('This code has been voided. Print a new label.');
-    }
-  }
-
-  private assertFulfillable(status: StockUnitStatus): void {
-    if (status === StockUnitStatus.printed) {
-      throw new UnprocessableEntityException(
-        'This label was never activated. Bind a SKU before fulfilling.',
-      );
-    }
-    if (status === StockUnitStatus.sold) {
-      throw new ConflictException('This bottle is already marked sold.');
-    }
-    if (status === StockUnitStatus.void) {
-      throw new UnprocessableEntityException('This code has been voided. Print a new label.');
     }
   }
 
@@ -197,7 +213,9 @@ export class StockUnitsService {
       throw error;
     }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      throw new NotFoundException('This code is not in the system. Check the print batch or try again.');
+      throw new NotFoundException(
+        'This code is not in the system. Check the print batch or try again.',
+      );
     }
     throw error;
   }

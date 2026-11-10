@@ -13,6 +13,7 @@ import {
   fulfillPreviewUnit,
   listPreviewUnits,
   readLastSku,
+  voidPreviewUnit,
 } from '../../utils/admin/stock/stock-preview-store';
 import type {
   StockPrintBatch,
@@ -101,6 +102,20 @@ export const adminStockUnitsService = {
     } catch (error) {
       if (shouldUsePreview(error)) {
         return fulfillPreviewUnit(code);
+      }
+      throw toStockUnitClientError(error);
+    }
+  },
+
+  async void(code: string): Promise<StockScanResult> {
+    try {
+      const unit = await adminWebApi.postRecord<NestStockUnit>(
+        ADMIN_API_PATHS.stockUnitVoid(code),
+      );
+      return { unit: mapUnit(unit, unit.batchId ?? ''), source: 'nest' };
+    } catch (error) {
+      if (shouldUsePreview(error)) {
+        return voidPreviewUnit(code);
       }
       throw toStockUnitClientError(error);
     }

@@ -11,6 +11,8 @@ export const ADMIN_API_PATHS = {
     `/admin/stock-units/${encodeURIComponent(code)}/activate`,
   stockUnitFulfill: (code: string) =>
     `/admin/stock-units/${encodeURIComponent(code)}/fulfill`,
+  stockUnitVoid: (code: string) =>
+    `/admin/stock-units/${encodeURIComponent(code)}/void`,
 } as const;
 
 export const ADMIN_ROUTES = {

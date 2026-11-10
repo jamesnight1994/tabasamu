@@ -127,6 +127,25 @@ export function fulfillPreviewUnit(code: string): StockScanResult {
   return { unit: { ...unit }, source: 'preview' };
 }
 
+export function voidPreviewUnit(code: string): StockScanResult {
+  const state = readState();
+  const unit = findUnit(state, code);
+  if (!unit) {
+    throw new StockUnitClientError('unknown_code', stockErrorMessage('unknown_code'));
+  }
+  if (unit.status === 'sold') {
+    throw new StockUnitClientError('already_sold', stockErrorMessage('already_sold'));
+  }
+  if (unit.status === 'void') {
+    throw new StockUnitClientError('void', stockErrorMessage('void'));
+  }
+
+  unit.status = 'void';
+  writeState(state);
+
+  return { unit: { ...unit }, source: 'preview' };
+}
+
 export function listPreviewUnits(): StockUnit[] {
   return readState().units.slice().reverse();
 }
