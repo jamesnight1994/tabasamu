@@ -7,6 +7,7 @@ import {
   activatePreviewUnit,
   createPreviewPrintBatch,
   fulfillPreviewUnit,
+  voidPreviewUnit,
 } from '../../src/utils/admin/stock/stock-preview-store';
 import { StockUnitClientError } from '../../src/utils/admin/stock/stock-unit-types';
 import { qrSvg } from '../../src/utils/admin/stock/qr-svg';
@@ -41,6 +42,26 @@ describe('preview stock status machine', () => {
     const batch = createPreviewPrintBatch(1);
     activatePreviewUnit(batch.units[0].code, 'var_1');
     expect(() => activatePreviewUnit(batch.units[0].code, 'var_2')).toThrow(/already activated/);
+  });
+
+  it('voids printed and in_stock units', () => {
+    const printed = createPreviewPrintBatch(2);
+    const voidedPrinted = voidPreviewUnit(printed.units[0].code);
+    expect(voidedPrinted.unit.status).toBe('void');
+
+    activatePreviewUnit(printed.units[1].code, 'var_1');
+    const voidedStock = voidPreviewUnit(printed.units[1].code);
+    expect(voidedStock.unit.status).toBe('void');
+  });
+
+  it('rejects void of sold or already-void codes', () => {
+    const batch = createPreviewPrintBatch(2);
+    activatePreviewUnit(batch.units[0].code, 'var_1');
+    fulfillPreviewUnit(batch.units[0].code);
+    expect(() => voidPreviewUnit(batch.units[0].code)).toThrow(StockUnitClientError);
+
+    voidPreviewUnit(batch.units[1].code);
+    expect(() => voidPreviewUnit(batch.units[1].code)).toThrow(/void/);
   });
 
   it('persists units in sessionStorage', () => {

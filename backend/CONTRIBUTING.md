@@ -31,7 +31,7 @@ yarn test:e2e -- test/admin-products.e2e-spec.ts
 
 ```
 backend/
-  prisma/schema.prisma      # lean schema (products / variants / images today)
+  prisma/schema.prisma      # lean schema (products / variants / images / stock units)
   prisma/seed.ts
   src/
     main.ts                 # global prefix `v1`, ValidationPipe, CORS, listen 0.0.0.0
@@ -46,8 +46,35 @@ backend/
       admin-products.controller.ts  # guarded writes
       product.mapper.ts
       dto/
-    inventory/              # thin controller; can live under a feature module
+    stock-units/            # serialized bottle QR inventory
+      stock-unit-status.ts  # allowed transitions (single source of truth)
+      stock-units.service.ts
+      admin-stock-units.controller.ts
+      dto/
+    inventory/              # thin public GET /inventory/:variantId
 ```
+
+## Stock units (status machine)
+
+Lifecycle: `printed → in_stock → sold | void`. `sold` and `void` are **terminal** — returns get a **new** code (no reactivation).
+
+| From | Allowed next |
+|---|---|
+| `printed` | `in_stock` (needs `variantId`), `void` |
+| `in_stock` | `sold`, `void` |
+| `sold` / `void` | none |
+
+Admin routes (`X-Admin-Api-Key`):
+
+| Method | Path | Effect |
+|---|---|---|
+| `POST` | `/admin/stock-units/batches` | print blank codes |
+| `POST` | `/admin/stock-units/:code/activate` | `printed → in_stock` |
+| `POST` | `/admin/stock-units/:code/fulfill` | `in_stock → sold` |
+| `POST` | `/admin/stock-units/:code/void` | `printed\|in_stock → void` |
+| `PATCH` | `/admin/stock-units/:code` | any allowed transition (`{ status, variantId? }`) |
+
+**`Variant.stockOnHand`** mirrors `COUNT(StockUnit WHERE variantId AND status = in_stock)`. Every transition that touches a variant calls `syncVariantStock` — do not ±1 dual-write. Illegal transitions: `409` (already sold / already activated) or `422` (voided / never activated / other illegal edge).
 
 ## Checklist: add a feature
 
@@ -87,6 +114,8 @@ Copy the **products** module pattern. Do not invent a second architecture.
 | API mapping | `src/products/product.mapper.ts` |
 | Admin guard | `src/auth/admin-api-key.guard.ts` |
 | Inventory read | `src/inventory/inventory.controller.ts` |
+| Stock status matrix | `src/stock-units/stock-unit-status.ts` |
+| Stock admin (print/activate/fulfill/void/PATCH) | `src/stock-units/admin-stock-units.controller.ts` |
 
 ## Local run
 
